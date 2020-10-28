@@ -101,8 +101,13 @@ class SimpleReplication:
 				return true
 		return false
 
+func _run_failing_test_code():
+	var test_script = load('res://test/integration/test_345_beta_issues_simple.gd').new()
+	test_script.test_using_local_copy_of_connection_check_logic()
+
 func _init():
 	#BadRefCheck.new().dynamic_object_check(BadRefCheck.HasStubber.new())
 	#AssertConnectedCheck.new().connect_and_check()
-	SimpleReplication.new().run_it()
+	#SimpleReplication.new().run_it()
+	_run_failing_test_code()
 	quit()

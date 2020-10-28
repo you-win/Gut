@@ -10,11 +10,22 @@ class ConnectTo:
 	func test_signal_connector():
 		pass
 
-func _init():
+func _run_failing_test_code():
+	print('--- _run_failing_test_code ---')
+	var test_script = load('res://test/integration/test_345_beta_issues_simple.gd').new()
+	test_script.test_using_local_copy_of_connection_check_logic()
+
+func _run_local_version_of_test_code():
+	print('--- _run_local_version_of_test_code ---')
 	var s = Signaler.new()
 	var c = ConnectTo.new()
 	s.connect(SIGNAL_NAME, c, METHOD_NAME)
 	print('are connected = ', _check_if_connected(s, c, SIGNAL_NAME))
+
+
+func _init():
+	_run_failing_test_code()
+	_run_local_version_of_test_code()
 	quit()
 
 # Simulates the check used by assert_connected when a method name is
