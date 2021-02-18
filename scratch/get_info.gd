@@ -134,11 +134,14 @@ func get_defaults_and_types(method_meta):
 	return text
 
 
-func class_db_stuff():
-	print(ClassDB.class_exists('Node2D'))
-	print('category = ',  ClassDB.class_get_category('Node2D'))
-	#print(str(JSON.print(ClassDB.class_get_method_list('Node2D'), ' ')))
-	# print(ClassDB.class_get_integer_constant_list('Node2D'))
+func class_db_stuff(name="Node2D"):
+	print("exists ", ClassDB.class_exists(name))
+	print("can instance ", ClassDB.can_instance(name))
+	print('category = ',  ClassDB.class_get_category(name))
+
+	#print(str(JSON.print(ClassDB.class_get_method_list(name), ' ')))
+	print("constants:\n", ClassDB.class_get_integer_constant_list(name))
+	print("properties:\n", ClassDB.class_get_property_list(name))
 	# print(ClassDB.get_class_list())
 
 
@@ -238,6 +241,10 @@ func print_all_info(thing):
 		print('  ', props[i].name, props[i])
 
 func _init():
+	print_all_info(Input)
+	class_db_stuff("Input")
+	quit()
+
 	var r = Reference.new()
 	var r2 = r
 	var r3 = r
@@ -250,7 +257,7 @@ func _init():
 	#print(DoubleMeScene.resource_name)
 	#print(DoubleMeScene.get_meta_list())
 
-	print_script_methods()
+	#print_script_methods()
 	#var test = load('res://addons/gut/test.gd').new()
 	#print_method_info(test)
 
