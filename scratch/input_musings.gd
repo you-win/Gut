@@ -78,6 +78,12 @@ class NodeInputHandler:
 
 
 
+func get_singleton_by_name(name):
+	var source = str("const singleton = ", name)
+	var script = GDScript.new()
+	script.set_source_code(source)
+	script.reload()
+	return script.singleton
 
 
 class InputConst:
