@@ -57,7 +57,9 @@ class InputProcessor:
 
 	func _process(delta):
 		if(Input.is_action_just_pressed("foo")):
-			print(self, " fooed")
+			print('  ', self, " fooed")
+		if(Input.is_key_pressed(KEY_F)):
+			print('  ', self, "key-f is down")
 
 
 class ControlInputHandler:
@@ -129,15 +131,14 @@ func kick_off_keys():
 
 func _init():
 
-	print(get_singleton_by_name("Input"), "::", Input)
+	#print(get_singleton_by_name("Input"), "::", Input)
 
+	print(ClassDB.instance("Input"))
+	add_actions()
 
+	print('starting')
+	yield(kick_off_actions(), "completed")
+	print("\n\n")
+	yield(kick_off_keys(), "completed")
 
-
-	# print(ClassDB.instance("Input"))
-	# add_actions()
-	# print('starting')
-	# yield(kick_off_actions(), "completed")
-	# print("\n\n")
-	# yield(kick_off_keys(), "completed")
 	quit()
