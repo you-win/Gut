@@ -356,6 +356,7 @@ class TestDoubleInnerClasses:
 		assert_has_signal(inst, 'signal_signal')
 		assert_has_signal(inst, 'user_signal')
 
+
 class TestPartialDoubles:
 	extends BaseTest
 
@@ -404,6 +405,18 @@ class TestPartialDoubles:
 		var text = inst.get_script().get_source_code()
 		assert_false(text.match("*__gut_should_call_super('_init'*"), 'should not call super _init')
 
+	# when moving from storing doubles on disk to loading them directly from
+	# a string I think this scenario was created.  I don't know if it something
+	# to worry about but here is a failing test until that is decided.
+	# Note:  setting make_files didn't fix it so maybe this has always been
+	# an issue.
+	func test_can_partial_and_normal_double_in_same_test():
+		var double = doubler.double(DOUBLE_ME_PATH).new()
+		var p_double = doubler.partial_double(DOUBLE_ME_PATH).new()
+
+		assert_null(double.get_value(), 'double get_value')
+		assert_eq(p_double.get_value(), 0, 'partial get_value')
+
 
 class TestDoubleGDNaviteClasses:
 	extends BaseTest
@@ -427,6 +440,7 @@ class TestDoubleGDNaviteClasses:
 	func test_can_partial_double_Node2D():
 		var pd_node_2d  = _doubler.partial_double_gdnative(Node2D)
 		assert_not_null(pd_node_2d)
+
 
 class TestAutofree:
 	extends BaseTest
@@ -454,3 +468,48 @@ class TestAutofree:
 	func test_partial_double_default_init_params():
 		var doubled = partial_double('res://test/unit/test_doubler.gd', 'TestAutofree/InitHasDefaultParams').new()
 		assert_eq(doubled.a, 'asdf')
+
+
+class TestDoubleSingleton:
+	extends BaseTest
+
+	var _doubler = null
+	var _stubber = _utils.Stubber.new()
+
+	func before_each():
+		_stubber.clear()
+		_doubler = Doubler.new()
+		_doubler.set_output_dir(TEMP_FILES)
+		_doubler.set_stubber(_stubber)
+		_doubler._print_source = false
+
+	# func test_syntax():
+	# 	var di = load("res://input_output.gd")
+	# 	print(di)
+	# 	print(di.new())
+	# 	print(di.new().has_method("action_press"))
+	# 	print(Input.has_method("action_press"))
+	# 	print(_strutils.type2str(Input))
+
+
+	func test_can_make_double_of_input():
+		var Doubled = _doubler.double_singleton("Input")
+		assert_not_null(Doubled)
+
+	func test_can_make_instance_of_double():
+		var doubled = _doubler.double_singleton("Input").new()
+		assert_not_null(doubled)
+
+	func test_double_gets_methods_from_input():
+		var doubled = _doubler.double_singleton("Input").new()
+		assert_true(doubled.has_method("action_press"))
+
+	func test_normal_double_of_input_does_not_have_implementations():
+		var doubled = _doubler.double_singleton("Input").new()
+		assert_null(doubled.is_action_just_pressed())
+
+	func test_partial_double_gets_implementation():
+		var doubled = _doubler.partial_double_singleton("Input").new()
+		assert_false(doubled.is_action_just_pressed("foobar"))
+
+

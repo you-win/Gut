@@ -6,6 +6,7 @@ var __gut_metadata_ = {
 	stubber = __gut_instance_from_id({stubber_id}),
 	spy = __gut_instance_from_id({spy_id}),
 	gut = __gut_instance_from_id({gut_id}),
+	from_singleton = '{singleton_name}',
 }
 
 func __gut_instance_from_id(inst_id):

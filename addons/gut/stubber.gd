@@ -15,8 +15,12 @@ var _strutils = _utils.Strutils.new()
 
 func _make_key_from_metadata(doubled):
 	var to_return = doubled.__gut_metadata_.path
-	if(doubled.__gut_metadata_.subpath != ''):
+
+	if(doubled.__gut_metadata_.from_singleton != ''):
+		to_return = str(doubled.__gut_metadata_.from_singleton)
+	elif(doubled.__gut_metadata_.subpath != ''):
 		to_return += str('-', doubled.__gut_metadata_.subpath)
+
 	return to_return
 
 # Creates they key for the returns hash based on the type of object passed in
@@ -38,6 +42,7 @@ func _make_key_from_variant(obj, subpath=null):
 				to_return = _utils.get_native_class_name(obj)
 			else:
 				to_return = obj.resource_path
+
 	return to_return
 
 func _add_obj_method(obj, method, subpath=null):
@@ -155,7 +160,7 @@ func set_logger(logger):
 func to_s():
 	var text = ''
 	for thing in returns:
-		text += str(thing) + "\n"
+		text += str("-- ", thing, " --\n")
 		for method in returns[thing]:
 			text += str("\t", method, "\n")
 			for i in range(returns[thing][method].size()):

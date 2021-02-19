@@ -164,7 +164,7 @@ func _get_arg_text(method_meta):
 # types whose defaults are supported will have their values.  If a datatype
 # is not supported and the parameter has a default, a warning message will be
 # printed and the declaration will return null.
-func get_function_text(meta):
+func get_function_text(meta, super_name=""):
 	var method_params = _get_arg_text(meta)
 	var text = null
 
@@ -178,12 +178,12 @@ func get_function_text(meta):
 			"func_decleration":decleration,
 			"method_name":meta.name,
 			"param_array":param_array,
-			"super_call":get_super_call_text(meta)
+			"super_call":get_super_call_text(meta, super_name)
 		})
 	return text
 
 # creates a call to the function in meta in the super's class.
-func get_super_call_text(meta):
+func get_super_call_text(meta, super_name=""):
 	var params = ''
 
 	for i in range(meta.args.size()):
@@ -193,7 +193,7 @@ func get_super_call_text(meta):
 	if(meta.name == '_init'):
 		return 'null'
 	else:
-		return str('.', meta.name, '(', params, ')')
+		return str(super_name, ".", meta.name, '(', params, ')')
 
 func get_spy_call_parameters_text(meta):
 	var called_with = 'null'

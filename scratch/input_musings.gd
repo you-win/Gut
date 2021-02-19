@@ -78,6 +78,12 @@ class NodeInputHandler:
 
 
 
+
+
+class InputConst:
+	const input_singleton = Input
+
+
 func add_actions():
 	InputMap.add_action("foo")
 	var key  = InputEventKey.new()
@@ -113,10 +119,19 @@ func kick_off_keys():
 	yield(sender, "done")
 
 
+
+
 func _init():
-	add_actions()
-	print('starting')
-	yield(kick_off_actions(), "completed")
-	print("\n\n")
-	yield(kick_off_keys(), "completed")
+
+	print(get_singleton_by_name("Input"), "::", Input)
+
+
+
+
+	# print(ClassDB.instance("Input"))
+	# add_actions()
+	# print('starting')
+	# yield(kick_off_actions(), "completed")
+	# print("\n\n")
+	# yield(kick_off_keys(), "completed")
 	quit()
