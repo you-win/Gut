@@ -419,13 +419,13 @@ func _get_methods(object_info):
 		elif(methods[i].flags == 65 and !_ignored_methods.has(object_info.get_path(), methods[i]['name'])):
 			script_methods.add_local_method(methods[i])
 
-			if(object_info.get_method_strategy() == _utils.DOUBLE_STRATEGY.FULL):
-				# second pass is for anything not local
-				for j in range(methods.size()):
-					# 65 is a magic number for methods in script, though documentation
-					# says 64.  This picks up local overloads of base class methods too.
-					if(methods[j].flags != 65 and !_ignored_methods.has(object_info.get_path(), methods[j]['name'])):
-						script_methods.add_built_in_method(methods[j])
+	if(object_info.get_method_strategy() == _utils.DOUBLE_STRATEGY.FULL):
+		# second pass is for anything not local
+		for j in range(methods.size()):
+			# 65 is a magic number for methods in script, though documentation
+			# says 64.  This picks up local overloads of base class methods too.
+			if(methods[j].flags != 65 and !_ignored_methods.has(object_info.get_path(), methods[j]['name'])):
+				script_methods.add_built_in_method(methods[j])
 
 	return script_methods
 
