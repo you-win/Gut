@@ -58,20 +58,56 @@
 # 	InputEventScreenDrag
 # 	InputEventScreenTouch
 
-var _receivers = []
-var _is_recording = false
-var _recorded_events = []
+class InputQueueItem:
+	extends Node
 
+	var events = []
+	var time_delay = null
+	var frame_delay = null
+	var _waited_frames = 0
+	var _is_ready = false
+	var _delay_started = false
+
+	signal event_ready
+
+	func _process(delta):
+		if(frame_delay > 0 and _delay_started):
+			_waited_frames += 1
+			if(_waited_frames >= frame_delay):
+				emit_signal("event_ready")
+
+	func _init(t_delay, f_delay):
+		time_delay = t_delay
+		frame_delay = f_delay
+		_is_ready = time_delay == 0 and frame_delay == 0
+
+	func _on_time_timeout():
+		_is_ready = true
+		emit_signal("event_ready")
+
+	func _delay_timer(t):
+		return Engine.get_main_loop().root.get_tree().create_timer(t)
+
+	func is_ready():
+		return _is_ready
+
+	func start():
+		_delay_started = true
+		if(time_delay > 0):
+			var t = _delay_timer(time_delay)
+			t.connect("timeout", self, "_on_time_timeout")
+
+
+var _receivers = []
+var _input_queue = []
+var _next_queue_item = null
 
 signal playback_finished
+
 
 func _init(r=null):
 	if(r != null):
 		add_receiver(r)
-
-
-func _delay_timer(t):
-	return Engine.get_main_loop().root.get_tree().create_timer(t)
 
 
 func _to_scancode(which):
@@ -84,9 +120,7 @@ func _to_scancode(which):
 func _send_event(event):
 	for r in _receivers:
 		if(r == Input):
-			# This has to be a call_deferred or it doesn't work for some reason.
-			# Found this solution on a forum post that I have since lost.
-			Input.call_deferred('parse_input_event', event)
+			Input.parse_input_event(event)
 		else:
 			if(r.has_method("_input")):
 				r._input(event)
@@ -98,20 +132,18 @@ func _send_event(event):
 				r._unhandled_input(event)
 
 
-func _send_or_record_event(event, delay):
-	if(_is_recording):
-		_recorded_events.append([event, delay])
+func _send_or_record_event(event):
+	if(_next_queue_item != null):
+		_next_queue_item.events.append(event)
 	else:
 		_send_event(event)
 
 
-func _new_mouse_button_event(positions, pressed, button_index):
+func _new_mouse_button_event(position, global_position, pressed, button_index):
 	var event = InputEventMouseButton.new()
-	if(typeof(positions) == TYPE_ARRAY):
-		event.position = positions[0]
-		event.global_position = positions[1]
-	else:
-		event.position = positions
+	event.position = position
+	if(global_position != null):
+		event.global_position = global_position
 	event.pressed = pressed
 	event.button_index = button_index
 
@@ -126,86 +158,101 @@ func get_receivers():
 	return _receivers
 
 
-func key_up(which, delay=null):
+func key_up(which):
 	var event = InputEventKey.new()
 	event.scancode = _to_scancode(which)
 	event.pressed = false
-	_send_or_record_event(event, delay)
+	_send_or_record_event(event)
 	return event
 
 
-func key_down(which, delay=null):
+func key_down(which):
 	var event = InputEventKey.new()
 	event.scancode = _to_scancode(which)
 	event.pressed = true
-	_send_or_record_event(event, delay)
+	_send_or_record_event(event)
 	return event
 
 
-func action_up(which, strength, delay=null):
+func action_up(which, strength):
 	var event  = InputEventAction.new()
 	event.action = which
 	event.strength = strength
-	_send_or_record_event(event, delay)
+	_send_or_record_event(event)
 	return event
 
 
-func action_down(which, strength, delay=null):
+func action_down(which, strength):
 	var event  = InputEventAction.new()
 	event.action = which
 	event.strength = strength
 	event.pressed = true
-	_send_or_record_event(event, delay)
+	_send_or_record_event(event)
 	return event
 
 
-func mouse_left_button_down(positions, delay=null):
-	var event = _new_mouse_button_event(positions, true, BUTTON_LEFT)
-	_send_or_record_event(event, delay)
+func mouse_left_button_down(position, global_position=null):
+	var event = _new_mouse_button_event(position, global_position, true, BUTTON_LEFT)
+	_send_or_record_event(event)
 	return event
 
 
-func mouse_left_button_up(positions, delay=null):
-	var event = _new_mouse_button_event(positions, false, BUTTON_LEFT)
-	_send_or_record_event(event, delay)
+func mouse_left_button_up(position, global_position=null):
+	var event = _new_mouse_button_event(position, global_position, false, BUTTON_LEFT)
+	_send_or_record_event(event)
 	return event
 
 
-func mouse_double_click(positions, delay=null):
-	var event = _new_mouse_button_event(positions, false, BUTTON_LEFT)
+func mouse_double_click(position, global_position=null):
+	var event = _new_mouse_button_event(position, global_position, false, BUTTON_LEFT)
 	event.doubleclick = true
-	_send_or_record_event(event, delay)
+	_send_or_record_event(event)
 	return event
 
 
-func mouse_right_button_down(positions, delay=null):
-	var event = _new_mouse_button_event(positions, true, BUTTON_RIGHT)
-	_send_or_record_event(event, delay)
+func mouse_right_button_down(position, global_position=null):
+	var event = _new_mouse_button_event(position, global_position, true, BUTTON_RIGHT)
+	_send_or_record_event(event)
 	return event
 
 
-func mouse_right_button_up(positions, delay=null):
-	var event = _new_mouse_button_event(positions, false, BUTTON_RIGHT)
-	_send_or_record_event(event, delay)
+func mouse_right_button_up(position, global_position=null):
+	var event = _new_mouse_button_event(position, global_position, false, BUTTON_RIGHT)
+	_send_or_record_event(event)
 	return event
 
 
-func send_event(event,delay=null):
-	_send_or_record_event(event, delay)
+func send_event(event):
+	_send_or_record_event(event)
 
 
-func record():
-	_is_recording = true
+func _on_queue_item_ready(item):
+	for event in item.events:
+		_send_event(event)
+
+	var done_event = _input_queue.pop_front()
+	done_event.queue_free()
+
+	if(_input_queue.size() == 0):
+		emit_signal("playback_finished")
+	else:
+		_input_queue[0].start()
 
 
-func play():
-	_is_recording = false
-	for event in _recorded_events:
-		_send_event(event[0])
-		if(event[1] != null):
-			yield(_delay_timer(event[1]), 'timeout')
-	emit_signal("playback_finished")
+func _add_queue_item(item):
+	item.connect("event_ready", self, "_on_queue_item_ready", [item])
+	_next_queue_item = item
+	_input_queue.append(item)
+	Engine.get_main_loop().root.add_child(item)
+	if(_input_queue.size() == 1):
+		item.start()
 
 
-func clear_recording():
-	_recorded_events.clear()
+func wait(t):
+	var item = InputQueueItem.new(t, 0)
+	_add_queue_item(item)
+
+
+func wait_frames(num_frames):
+	var item = InputQueueItem.new(0, num_frames)
+	_add_queue_item(item)

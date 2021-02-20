@@ -27,6 +27,19 @@ class MissingGuiInput:
 	func _unhandled_input(event):
 		unhandled_event = event
 
+class InputTracker:
+	extends Node
+	var inputs = []
+	var input_frames = []
+
+	var _frame_counter = 0
+
+	func _process(delta):
+		_frame_counter += 1
+
+	func _input(event):
+		inputs.append(event)
+		input_frames.append(_frame_counter)
 
 class TestTheBasics:
 	extends "res://addons/gut/test.gd"
@@ -103,7 +116,8 @@ class TestSendEvent:
 
 	func test_sends_events_to_Input():
 		var sender = InputSender.new(Input)
-		# not a receiver
+		# not a receiver, in the tree so Input will send events it gets with
+		# parse_input_event to _input and _unhandled_input
 		var thing = HasInputEvents.new()
 		add_child_autofree(thing)
 
@@ -112,8 +126,9 @@ class TestSendEvent:
 		event.scancode = KEY_Y
 		sender.send_event(event)
 
-		yield(yield_for(.1), YIELD)
+		#yield(yield_for(.1), YIELD)
 		assert_true(Input.is_key_pressed(KEY_Y), 'is_pressed')
+
 		# illustrate that sending events to Input will also cause _input
 		# and _unhandled_inpu to fire on anything in the tree.
 		assert_eq(thing.input_event, event, '_input event')
@@ -215,54 +230,17 @@ class TestSequence:
 
 	var InputSender = _utils.InputSender
 
-	class InputTracker:
-		var inputs = []
-
-		func _input(event):
-			inputs.append(event)
-
 	func test_when_recoding_events_are_not_sent():
 		var r = autofree(HasInputEvents.new())
 		var sender = InputSender.new(r)
-		sender.record()
+
+		sender.wait_frames(1)
 		sender.key_down(KEY_Q)
 		assert_null(r.input_event)
 
-	func test_events_can_be_played_back():
-		var r = autofree(InputTracker.new())
-		var sender = InputSender.new(r)
-
-		var e1 = InputEventAction.new()
-		e1.set_action("foo")
-		var e2 = InputEventAction.new()
-		e2.set_action("bar")
-
-		sender.record()
-		sender.send_event(e1)
-		sender.send_event(e2)
-		sender.play()
-
-		assert_eq(r.inputs, [e1, e2])
-
-	func test_can_clear_recording():
-		var r = autofree(InputTracker.new())
-		var sender = InputSender.new(r)
-
-		var e1 = InputEventAction.new()
-		e1.set_action("foo")
-		var e2 = InputEventAction.new()
-		e2.set_action("bar")
-
-		sender.record()
-		sender.send_event(e1)
-		sender.send_event(e2)
-		sender.clear_recording()
-		sender.play()
-
-		assert_eq(r.inputs, [])
 
 	func test_emits_signal_when_play_ends():
-		var r = autofree(InputTracker.new())
+		var r = add_child_autofree(InputTracker.new())
 		var sender = InputSender.new(r)
 		watch_signals(sender)
 
@@ -271,24 +249,25 @@ class TestSequence:
 		var e2 = InputEventAction.new()
 		e2.set_action("bar")
 
-		sender.record()
+		sender.wait_frames(1)
 		sender.send_event(e1)
 		sender.send_event(e2)
-		sender.play()
 
+		yield(yield_to(sender, "playback_finished", 2), YIELD)
 		assert_signal_emitted(sender, 'playback_finished')
 
 	func test_playback_adds_delays():
-		var r = autofree(InputTracker.new())
+		var r = add_child_autofree(InputTracker.new())
 		var sender = InputSender.new(r)
 
-		sender.record()
-		sender.key_down(KEY_1, .5)
-		sender.key_up(KEY_1, .5)
-		var e = InputEventAction.new()
-		e.action = "foobar"
-		sender.send_event(e)
-		sender.play()
+		var cust_event = InputEventAction.new()
+		cust_event.action = "foobar"
+
+		sender.key_down(KEY_1)
+		sender.wait(.5)
+		sender.key_up(KEY_1)
+		sender.wait(.5)
+		sender.send_event(cust_event)
 
 		assert_eq(r.inputs.size(), 1, "first input sent")
 
@@ -297,6 +276,59 @@ class TestSequence:
 
 		yield(yield_to(sender, 'playback_finished', 5), YIELD)
 		assert_eq(r.inputs.size(), 3, "last input sent")
+
+	func test_can_wait_frames():
+		var r = add_child_autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+
+		var cust_event = InputEventAction.new()
+		cust_event.action = "foobar"
+
+		sender.key_down(KEY_1)
+		sender.wait_frames(30)
+		sender.key_up(KEY_1)
+		sender.wait_frames(30)
+		sender.send_event(cust_event)
+
+		assert_eq(r.inputs.size(), 1, "first input sent")
+
+		yield(yield_for(.7), YIELD)
+		assert_eq(r.inputs.size(), 2, "second input sent")
+
+		yield(yield_to(sender, 'playback_finished', 5), YIELD)
+		assert_eq(r.inputs.size(), 3, "last input sent")
+
+	func test_non_delayed_events_happen_on_the_same_frame_when_delayed_seconds():
+		var r = add_child_autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+
+		sender.key_down("z")
+		sender.wait(.5)
+		sender.key_down("a")
+		sender.key_down("b")
+		sender.wait(.5)
+		sender.key_down("c")
+
+		yield(yield_to(sender, "playback_finished", 2), YIELD)
+		assert_eq(r.input_frames[1], r.input_frames[2])
+		assert_eq(r.inputs[1].scancode, KEY_A)
+		assert_eq(r.inputs[2].scancode, KEY_B)
+
+	func test_non_delayed_events_happen_on_the_same_frame_when_delayed_frames():
+		var r = add_child_autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+
+		sender.key_down("a")
+		sender.wait_frames(10)
+		sender.key_up("a")
+		sender.key_down("b")
+		sender.wait_frames(20)
+		sender.key_down("c")
+
+		yield(yield_to(sender, "playback_finished", 2), YIELD)
+		assert_eq(r.input_frames[1], r.input_frames[2])
+		assert_eq(r.inputs[1].scancode, KEY_A)
+		assert_eq(r.inputs[2].scancode, KEY_B)
 
 
 class TestMouseButtons:
@@ -314,7 +346,7 @@ class TestMouseButtons:
 
 	func assert_mouse_event_positions(method):
 		var sender = InputSender.new()
-		var event = sender.call(method, [Vector2(10, 10), Vector2(11, 11)])
+		var event = sender.call(method, Vector2(10, 10), Vector2(11, 11))
 		assert_eq(event.position, Vector2(10, 10), "position")
 		assert_eq(event.global_position, Vector2(11, 11), "global position")
 
@@ -352,3 +384,16 @@ class TestMouseButtons:
 		assert_mouse_event_positions("mouse_right_button_up")
 		assert_mouse_event_sends_event("mouse_right_button_up")
 
+	# func test_what_chaining_looks_like():
+	# 	var r = autofree(InputTracker.new())
+	# 	var sender = InputSender.new(r)
+
+	# 	sender\
+	# 		.key_down('a')\
+	# 		.wait(.5)\
+	# 		.key_down("b")\
+	# 		.wait(.5)\
+	# 		.key_down("c")
+
+	# 	yield(sender, "playback_finished")
+	# 	assert_eq(r.inputs.size(), 3)

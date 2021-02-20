@@ -54,12 +54,22 @@ class InputSender:
 
 class InputProcessor:
 	extends Node2D
-
+	var _frame_count = 0
+	var _last_printed_frame = 0
 	func _process(delta):
+		_frame_count += 1
 		if(Input.is_action_just_pressed("foo")):
 			print('  ', self, " fooed")
-		if(Input.is_key_pressed(KEY_F)):
+		elif(Input.is_key_pressed(KEY_F)):
 			print('  ', self, "key-f is down")
+
+	func _input(event):
+		if(event is InputEventKey):
+			if(_last_printed_frame == _frame_count):
+				print("  and ", OS.get_scancode_string(event.scancode))
+			else:
+				print(_frame_count, "  ", OS.get_scancode_string(event.scancode))
+			_last_printed_frame = _frame_count
 
 
 class ControlInputHandler:
@@ -130,15 +140,17 @@ func kick_off_keys():
 
 
 func _init():
+	var processor = InputProcessor.new()
+	root.add_child(processor)
 
 	#print(get_singleton_by_name("Input"), "::", Input)
 
-	print(ClassDB.instance("Input"))
-	add_actions()
+	# print(ClassDB.instance("Input"))
+	# add_actions()
 
-	print('starting')
-	yield(kick_off_actions(), "completed")
-	print("\n\n")
-	yield(kick_off_keys(), "completed")
+	# print('starting')
+	# yield(kick_off_actions(), "completed")
+	# print("\n\n")
+	# yield(kick_off_keys(), "completed")
 
-	quit()
+	#quit()
