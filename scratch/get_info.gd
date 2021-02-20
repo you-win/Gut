@@ -241,7 +241,7 @@ func print_all_info(thing):
 		print('  ', props[i].name, props[i])
 
 func _init():
-	print_all_info(Input)
+	#print_all_info(Input)
 	class_db_stuff("Input")
 	quit()
 
