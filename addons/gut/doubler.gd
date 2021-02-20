@@ -91,12 +91,14 @@ class ObjectInfo:
 		if(subpath != null):
 			_subpaths = Array(subpath.split('/'))
 
+
 	func _get_singleton_by_name(name):
 		var source = str("const singleton = ", name)
 		var script = GDScript.new()
 		script.set_source_code(source)
 		script.reload()
 		return script.singleton
+
 
 	# Returns an instance of the class/inner class
 	func instantiate():
@@ -111,6 +113,7 @@ class ObjectInfo:
 
 		return to_return
 
+
 	# Can't call it get_class because that is reserved so it gets this ugly name.
 	# Loads up the class and then any inner classes to give back a reference to
 	# the desired Inner class (if there is any)
@@ -120,22 +123,69 @@ class ObjectInfo:
 			LoadedClass = LoadedClass.get(_subpaths[i])
 		return LoadedClass
 
+
 	func to_s():
 		return str(_path, '[', get_subpath(), ']')
+
 
 	func get_path():
 		return _path
 
+
 	func get_subpath():
 		return PoolStringArray(_subpaths).join('/')
+
 
 	func has_subpath():
 		return _subpaths.size() != 0
 
+
+	func get_method_strategy():
+		return _method_strategy
+
+
+	func set_method_strategy(method_strategy):
+		_method_strategy = method_strategy
+
+
+	func is_native():
+		return _native_class != null
+
+
+	func set_native_class(native_class):
+		_native_class = native_class
+		var inst = native_class.new()
+		_native_class_name = inst.get_class()
+		_path = _native_class_name
+		if(!inst is Reference):
+			inst.free()
+
+
+	func get_native_class_name():
+		return _native_class_name
+
+
+	func get_singleton_instance():
+		return _singleton_instance
+
+
+	func get_singleton_name():
+		return _singleton_name
+
+
+	func set_singleton_name(singleton_name):
+		_singleton_name = singleton_name
+		_singleton_instance = _get_singleton_by_name(_singleton_name)
+
+
+	func is_singleton():
+		return _singleton_instance != null
+
+
 	func get_extends_text():
 		var extend = null
 		if(is_singleton()):
-			extend = ""
+			extend = str("# Double of singleton ", _singleton_name, ", base class is Reference")
 		elif(is_native()):
 			var native = get_native_class_name()
 			if(native.begins_with('_')):
@@ -149,38 +199,23 @@ class ObjectInfo:
 
 		return extend
 
-	func get_method_strategy():
-		return _method_strategy
 
-	func set_method_strategy(method_strategy):
-		_method_strategy = method_strategy
+	func get_constants_text():
+		if(!is_singleton()):
+			return ""
 
-	func is_native():
-		return _native_class != null
+		# do not include constants defined in the super class which for
+		# singletons stubs is Reference.
+		var exclude_constants = Array(ClassDB.class_get_integer_constant_list("Reference"))
+		var text = str("# -----\n# ", _singleton_name, " Constants\n# -----\n")
+		var constants = ClassDB.class_get_integer_constant_list(_singleton_name)
+		for c in constants:
+			if(!exclude_constants.has(c)):
+				var value = ClassDB.class_get_integer_constant(_singleton_name, c)
+				text += str("const ", c, " = ", value, "\n")
 
-	func set_native_class(native_class):
-		_native_class = native_class
-		var inst = native_class.new()
-		_native_class_name = inst.get_class()
-		_path = _native_class_name
-		if(!inst is Reference):
-			inst.free()
+		return text
 
-	func get_native_class_name():
-		return _native_class_name
-
-	func get_singleton_instance():
-		return _singleton_instance
-
-	func get_singleton_name():
-		return _singleton_name
-
-	func set_singleton_name(singleton_name):
-		_singleton_name = singleton_name
-		_singleton_instance = _get_singleton_by_name(_singleton_name)
-
-	func is_singleton():
-		return _singleton_instance != null
 
 # ------------------------------------------------------------------------------
 # Allows for interacting with a file but only creating a string.  This was done
@@ -313,6 +348,7 @@ func _stub_to_call_super(obj_info, method_name):
 	params.to_call_super()
 	_stubber.add_stub(params)
 
+
 func _get_base_script_text(obj_info, override_path):
 	var path = obj_info.get_path()
 	if(override_path != null):
@@ -337,10 +373,12 @@ func _get_base_script_text(obj_info, override_path):
 		"spy_id":spy_id,
 		"extends":obj_info.get_extends_text(),
 		"gut_id":gut_id,
-		"singleton_name":_utils.nvl(obj_info.get_singleton_name(), '')
+		"singleton_name":_utils.nvl(obj_info.get_singleton_name(), ''),
+		"constants":obj_info.get_constants_text()
 	}
 
 	return _base_script_text.format(values)
+
 
 func _write_file(obj_info, dest_path, override_path=null):
 	var base_script = _get_base_script_text(obj_info, override_path)
@@ -375,6 +413,7 @@ func _write_file(obj_info, dest_path, override_path=null):
 		print(f.get_contents())
 	return f
 
+
 func _double_scene_and_script(scene_info):
 	var to_return = PackedSceneDouble.new()
 	to_return.load_scene(scene_info.get_path())
@@ -393,6 +432,7 @@ func _double_scene_and_script(scene_info):
 		to_return.set_script_obj(_double(oi, scene_info.get_path()).load_it())
 
 	return to_return
+
 
 func _get_methods(object_info):
 	var obj = object_info.instantiate()
@@ -429,14 +469,17 @@ func _get_methods(object_info):
 
 	return script_methods
 
+
 func _get_inst_id_ref_str(inst):
 	var ref_str = 'null'
 	if(inst):
 		ref_str = str('instance_from_id(', inst.get_instance_id(),')')
 	return ref_str
 
+
 func _get_func_text(method_hash, super=""):
 	return _method_maker.get_function_text(method_hash, super) + "\n"
+
 
 # returns the path to write the double file to
 func _get_temp_path(object_info):
@@ -461,8 +504,10 @@ func _get_temp_path(object_info):
 	var to_return = _output_dir.plus_file(file_name)
 	return to_return
 
+
 func _load_double(fileOrString):
 	return fileOrString.load_it()
+
 
 func _double(obj_info, override_path=null):
 	var temp_path = _get_temp_path(obj_info)
@@ -470,11 +515,13 @@ func _double(obj_info, override_path=null):
 	_double_count += 1
 	return result
 
+
 func _double_script(path, make_partial, strategy):
 	var oi = ObjectInfo.new(path)
 	oi.make_partial_double = make_partial
 	oi.set_method_strategy(strategy)
 	return _double(oi).load_it()
+
 
 func _double_inner(path, subpath, make_partial, strategy):
 	var oi = ObjectInfo.new(path, subpath)
@@ -482,11 +529,13 @@ func _double_inner(path, subpath, make_partial, strategy):
 	oi.make_partial_double = make_partial
 	return _double(oi).load_it()
 
+
 func _double_scene(path, make_partial, strategy):
 	var oi = ObjectInfo.new(path)
 	oi.set_method_strategy(strategy)
 	oi.make_partial_double = make_partial
 	return _double_scene_and_script(oi)
+
 
 func _double_gdnative(native_class, make_partial, strategy):
 	var oi = ObjectInfo.new(null)
@@ -494,6 +543,7 @@ func _double_gdnative(native_class, make_partial, strategy):
 	oi.set_method_strategy(strategy)
 	oi.make_partial_double = make_partial
 	return _double(oi).load_it()
+
 
 func _double_singleton(singleton_name, make_partial, strategy):
 	var oi = ObjectInfo.new(null)
@@ -508,6 +558,7 @@ func _double_singleton(singleton_name, make_partial, strategy):
 func get_output_dir():
 	return _output_dir
 
+
 func set_output_dir(output_dir):
 	if(output_dir !=  null):
 		_output_dir = output_dir
@@ -515,17 +566,22 @@ func set_output_dir(output_dir):
 			var d = Directory.new()
 			d.make_dir_recursive(output_dir)
 
+
 func get_spy():
 	return _spy
+
 
 func set_spy(spy):
 	_spy = spy
 
+
 func get_stubber():
 	return _stubber
 
+
 func set_stubber(stubber):
 	_stubber = stubber
+
 
 func get_logger():
 	return _lgr
@@ -625,14 +681,18 @@ func delete_output_directory():
 		var d = Directory.new()
 		d.remove(_output_dir)
 
+
 func add_ignored_method(path, method_name):
 	_ignored_methods.add(path, method_name)
+
 
 func get_ignored_methods():
 	return _ignored_methods
 
+
 func get_make_files():
 	return _make_files
+
 
 func set_make_files(make_files):
 	_make_files = make_files

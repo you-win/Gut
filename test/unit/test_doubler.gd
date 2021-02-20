@@ -481,7 +481,7 @@ class TestDoubleSingleton:
 		_doubler = Doubler.new()
 		_doubler.set_output_dir(TEMP_FILES)
 		_doubler.set_stubber(_stubber)
-		_doubler._print_source = false
+		_doubler._print_source = true
 
 	# func test_syntax():
 	# 	var di = load("res://input_output.gd")
@@ -511,5 +511,10 @@ class TestDoubleSingleton:
 	func test_partial_double_gets_implementation():
 		var doubled = _doubler.partial_double_singleton("Input").new()
 		assert_false(doubled.is_action_just_pressed("foobar"))
+
+	func test_double_gets_constants():
+		var doubled = _doubler.double_singleton("Input").new()
+		assert_eq(doubled.CURSOR_VSPLIT, Input.CURSOR_VSPLIT)
+
 
 
