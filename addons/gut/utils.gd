@@ -289,7 +289,8 @@ func get_native_class_name(thing):
 	if(is_native_class(thing)):
 		var newone = thing.new()
 		to_return = newone.get_class()
-		newone.free()
+		if(!newone is Reference):
+			newone.free()
 	return to_return
 
 

@@ -15,6 +15,7 @@ class HasInputEvents:
 	func _unhandled_input(event):
 		unhandled_event = event
 
+
 class MissingGuiInput:
 	extends Node
 
@@ -25,7 +26,6 @@ class MissingGuiInput:
 		input_event = event
 	func _unhandled_input(event):
 		unhandled_event = event
-
 
 
 class TestTheBasics:
@@ -116,9 +116,10 @@ class TestSendEvent:
 		assert_true(Input.is_key_pressed(KEY_Y), 'is_pressed')
 		# illustrate that sending events to Input will also cause _input
 		# and _unhandled_inpu to fire on anything in the tree.
-		assert_eq(thing.input_event, event, '_input key')
-		assert_eq(thing.unhandled_event, event, '_input key')
+		assert_eq(thing.input_event, event, '_input event')
+		assert_eq(thing.unhandled_event, event, '_unhandled event')
 		assert_null(thing.gui_event, 'gui event')
+
 
 class TestCreateKeyEvents:
 	extends "res://addons/gut/test.gd"
@@ -128,7 +129,7 @@ class TestCreateKeyEvents:
 	func test_key_up_creates_event_for_key():
 		var sender = InputSender.new()
 		var event = sender.key_up(KEY_A)
-		assert_true(event is InputEventKey, 'is InputEventKey')
+		assert_is(event, InputEventKey, 'is InputEventKey')
 		assert_eq(event.scancode, KEY_A)
 		assert_false(event.pressed, "pressed")
 
@@ -145,7 +146,7 @@ class TestCreateKeyEvents:
 	func test_key_down_creates_event_for_key():
 		var sender = InputSender.new()
 		var event = sender.key_down(KEY_B)
-		assert_true(event is InputEventKey, 'is InputEventKey')
+		assert_is(event, InputEventKey, 'is InputEventKey')
 		assert_eq(event.scancode, KEY_B)
 		assert_true(event.pressed, "pressed")
 
@@ -166,6 +167,7 @@ class TestCreateKeyEvents:
 		sender.key_down(KEY_Q)
 		assert_eq(r.input_event.scancode, KEY_Q)
 
+
 class TestCreateActionEvents:
 	extends "res://addons/gut/test.gd"
 
@@ -174,7 +176,7 @@ class TestCreateActionEvents:
 	func test_action_up_creates_correct_class():
 		var sender = InputSender.new()
 		var e = sender.action_up("foo", 1.0)
-		assert_true(e is InputEventAction)
+		assert_is(e, InputEventAction)
 
 	func test_action_up_sets_properties():
 		var sender = InputSender.new()
@@ -192,7 +194,7 @@ class TestCreateActionEvents:
 	func test_action_down_creates_correct_class():
 		var sender = InputSender.new()
 		var e = sender.action_down("foo", 1.0)
-		assert_true(e is InputEventAction)
+		assert_is(e, InputEventAction)
 
 	func test_action_down_sets_properties():
 		var sender = InputSender.new()
@@ -206,6 +208,7 @@ class TestCreateActionEvents:
 		var sender = InputSender.new(r)
 		sender.action_down("foo", .5)
 		assert_eq(r.input_event.action, "foo")
+
 
 class TestSequence:
 	extends "res://addons/gut/test.gd"
@@ -296,10 +299,56 @@ class TestSequence:
 		assert_eq(r.inputs.size(), 3, "last input sent")
 
 
+class TestMouseButtons:
+	extends "res://addons/gut/test.gd"
 
+	var InputSender = _utils.InputSender
 
+	func assert_mouse_event_props(method, pressed, button_index):
+		var sender = InputSender.new()
+		var event = sender.call(method, (Vector2(10, 10)))
+		assert_is(event, InputEventMouseButton, 'correct class')
+		assert_eq(event.position, Vector2(10, 10), 'position')
+		assert_eq(event.pressed, pressed, 'pressed')
+		assert_eq(event.button_index, button_index, 'button_index')
 
+	func assert_mouse_event_positions(method):
+		var sender = InputSender.new()
+		var event = sender.call(method, [Vector2(10, 10), Vector2(11, 11)])
+		assert_eq(event.position, Vector2(10, 10), "position")
+		assert_eq(event.global_position, Vector2(11, 11), "global position")
 
+	func assert_mouse_event_sends_event(method):
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		var event = sender.call(method, Vector2(22, 22))
+		assert_eq(r.input_event, event, 'event sent')
 
+	func test_lmb_down():
+		assert_mouse_event_props("mouse_left_button_down", true, BUTTON_LEFT)
+		assert_mouse_event_positions("mouse_left_button_down")
+		assert_mouse_event_sends_event("mouse_left_button_down")
 
+	func test_lmb_up():
+		assert_mouse_event_props("mouse_left_button_up", false, BUTTON_LEFT)
+		assert_mouse_event_positions("mouse_left_button_up")
+		assert_mouse_event_sends_event("mouse_left_button_up")
+
+	func test_double_clickk():
+		assert_mouse_event_props("mouse_double_click", false, BUTTON_LEFT)
+		assert_mouse_event_positions("mouse_double_click")
+		assert_mouse_event_sends_event("mouse_double_click")
+		var sender = InputSender.new()
+		var event = sender.mouse_double_click(Vector2(1, 1))
+		assert_true(event.doubleclick, "double click")
+
+	func test_rmb_down():
+		assert_mouse_event_props("mouse_right_button_down", true, BUTTON_RIGHT)
+		assert_mouse_event_positions("mouse_right_button_down")
+		assert_mouse_event_sends_event("mouse_right_button_down")
+
+	func test_rmb_up():
+		assert_mouse_event_props("mouse_right_button_up", false, BUTTON_RIGHT)
+		assert_mouse_event_positions("mouse_right_button_up")
+		assert_mouse_event_sends_event("mouse_right_button_up")
 
