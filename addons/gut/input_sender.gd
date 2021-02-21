@@ -33,9 +33,6 @@
 # InputEvents can be sent via the helper methods or a custom made InputEvent
 # can be sent via send_event(...)
 #
-# All helper methods and send_event include an optional delay parameter which
-# can be used in conjunction with record() and play() to create a sequence of
-# input to play back to all receivers.
 #
 # Finally, all helper methods also return the event they create so this class
 # can also be used as a factory for creating InputEvents easier.  Just do not
