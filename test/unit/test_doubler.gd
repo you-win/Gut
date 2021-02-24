@@ -481,16 +481,7 @@ class TestDoubleSingleton:
 		_doubler = Doubler.new()
 		_doubler.set_output_dir(TEMP_FILES)
 		_doubler.set_stubber(_stubber)
-		_doubler._print_source = true
-
-	# func test_syntax():
-	# 	var di = load("res://input_output.gd")
-	# 	print(di)
-	# 	print(di.new())
-	# 	print(di.new().has_method("action_press"))
-	# 	print(Input.has_method("action_press"))
-	# 	print(_strutils.type2str(Input))
-
+		_doubler._print_source = false
 
 	func test_can_make_double_of_input():
 		var Doubled = _doubler.double_singleton("Input")

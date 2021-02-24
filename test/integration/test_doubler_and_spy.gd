@@ -50,12 +50,10 @@ class TestBoth:
 		assert_true(_spy.was_called(inst, 'add_user_signal', ['signal_with_params', ['a', 'b']]), 'second signal added')
 
 	func test_can_spy_on_native_doubles():
-		_doubler._print_source = true
 		var inst  = _doubler.partial_double_gdnative(Node2D).new()
 		inst.set_position(Vector2(20, 20))
 		assert_true(_spy.was_called(inst, 'set_position'))
 		assert_true(_spy.was_called(inst, 'set_position', [Vector2(20, 20)]))
-		print(_spy._calls)
 
 	func test_can_spy_on_singleton_doubles():
 		var inst  = _doubler.partial_double_singleton("Input").new()
