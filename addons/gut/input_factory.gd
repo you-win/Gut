@@ -118,3 +118,25 @@ static func mouse_right_button_down(position, global_position=null):
 static func mouse_right_button_up(position, global_position=null):
 	var event = _new_mouse_button_event(position, global_position, false, BUTTON_RIGHT)
 	return event
+
+
+static func mouse_motion(position, global_position=null):
+	var event = InputEventMouseMotion.new()
+	event.position = position
+	if(global_position != null):
+		event.global_position = global_position
+	return event
+
+
+static func mouse_relative_motion(offset, last_motion_event=null, speed=Vector2(0, 0)):
+	var event = null
+	if(last_motion_event == null):
+		event = mouse_motion(offset)
+		event.speed = speed
+	else:
+		event = last_motion_event.duplicate()
+		event.position += offset
+		event.global_position += offset
+		event.relative = offset
+		event.speed = speed
+	return event

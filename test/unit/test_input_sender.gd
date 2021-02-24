@@ -172,6 +172,74 @@ class TestMouseButtons:
 		assert_mouse_event_sends_event("mouse_right_button_up")
 
 
+class TestMouseMotion:
+	extends "res://addons/gut/test.gd"
+
+	var InputSender = _utils.InputSender
+
+	func test_mouse_motion_sends_event():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.mouse_motion(Vector2(100, 100), Vector2(50, 50))
+		assert_eq(r.inputs[0].position, Vector2(100, 100), "position")
+		assert_eq(r.inputs[0].global_position, Vector2(50, 50), "global_position")
+
+	func test_mouse_motion_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.mouse_motion(Vector2(1,1)), sender)
+
+	func test_mouse_relative_motion_sends_event():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.mouse_relative_motion(Vector2(100, 100))
+		assert_eq(r.inputs[0].position, Vector2(100, 100), "position")
+
+	func test_mouse_relative_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.mouse_relative_motion(Vector2(1,1)), sender)
+
+	func test_mouse_relative_motion_uses_motion_from_mouse_motion():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender\
+			.mouse_motion(Vector2(10, 10), Vector2(50, 50))\
+			.mouse_relative_motion(Vector2(3, 3))
+
+		assert_eq(r.inputs[1].position, Vector2(13, 13))
+
+	func test_mouse_relative_motion_uses_motion_from_last_relative_motion():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender\
+			.mouse_motion(Vector2(10, 10), Vector2(50, 50))\
+			.mouse_relative_motion(Vector2(3, 3))\
+			.mouse_relative_motion(Vector2(1, 1))
+
+		assert_eq(r.inputs[-1].position, Vector2(14, 14))
+
+	func test_mouse_relative_motion_sets_speed():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender\
+			.mouse_motion(Vector2(10, 10), Vector2(50, 50))\
+			.mouse_relative_motion(Vector2(3, 3), Vector2(1, 1))
+
+		assert_eq(r.inputs[-1].speed, Vector2(1, 1))
+
+	# inferred tests:  mouse_set_position returns self and it does not send the
+	# event
+	func test_mouse_set_position_sets_last_mouse_motion():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+
+		sender\
+			.mouse_set_position(Vector2(10, 10), Vector2(20, 20))\
+			.mouse_relative_motion(Vector2(5, 5))
+
+		assert_eq(r.inputs[0].position, Vector2(15, 15), 'position')
+		assert_eq(r.inputs[0].global_position, Vector2(25, 25), 'global_position')
+
+
 class TestSendEvent:
 	extends "res://addons/gut/test.gd"
 
@@ -236,7 +304,6 @@ class TestSendEvent:
 		event.scancode = KEY_Y
 		sender.send_event(event)
 
-		#yield(yield_for(.1), YIELD)
 		assert_true(Input.is_key_pressed(KEY_Y), 'is_pressed')
 
 		# illustrate that sending events to Input will also cause _input
@@ -353,3 +420,17 @@ class TestSequence:
 		assert_eq(r.input_frames[1], r.input_frames[2])
 		assert_eq(r.inputs[1].scancode, KEY_A)
 		assert_eq(r.inputs[2].scancode, KEY_B)
+
+	func test_mouse_relative_motion_works_with_waits():
+		var r = add_child_autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+
+		sender\
+			.mouse_relative_motion(Vector2(1, 1))\
+			.wait_frames(1)\
+			.mouse_relative_motion(Vector2(2, 2))\
+			.wait_frames(1)\
+			.mouse_relative_motion(Vector2(3, 3))
+
+		yield(yield_to(sender, "playback_finished", 5), YIELD)
+		assert_eq(r.inputs[2].position, Vector2(6, 6))

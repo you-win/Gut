@@ -100,6 +100,7 @@ var _receivers = []
 var _input_queue = []
 var _next_queue_item = null
 var _last_key = null
+var _last_mouse_motion = null
 
 signal playback_finished
 
@@ -131,6 +132,28 @@ func _send_or_record_event(event):
 		_send_event(event)
 
 
+func _on_queue_item_ready(item):
+	for event in item.events:
+		_send_event(event)
+
+	var done_event = _input_queue.pop_front()
+	done_event.queue_free()
+
+	if(_input_queue.size() == 0):
+		emit_signal("playback_finished")
+	else:
+		_input_queue[0].start()
+
+
+func _add_queue_item(item):
+	item.connect("event_ready", self, "_on_queue_item_ready", [item])
+	_next_queue_item = item
+	_input_queue.append(item)
+	Engine.get_main_loop().root.add_child(item)
+	if(_input_queue.size() == 1):
+		item.start()
+
+
 func add_receiver(obj):
 	_receivers.append(obj)
 
@@ -139,6 +162,21 @@ func get_receivers():
 	return _receivers
 
 
+func wait(t):
+	var item = InputQueueItem.new(t, 0)
+	_add_queue_item(item)
+	return self
+
+
+func wait_frames(num_frames):
+	var item = InputQueueItem.new(0, num_frames)
+	_add_queue_item(item)
+	return self
+
+
+# ------------------------------
+# Event methods
+# ------------------------------
 func key_up(which):
 	var event = InputFactory.key_up(which)
 	_send_or_record_event(event)
@@ -203,39 +241,24 @@ func mouse_right_button_up(position, global_position=null):
 	return self
 
 
+func mouse_motion(position, global_position=null):
+	var event = InputFactory.mouse_motion(position, global_position)
+	_last_mouse_motion = event
+	_send_or_record_event(event)
+	return self
+
+
+func mouse_relative_motion(offset, speed=Vector2(0, 0)):
+	var event = InputFactory.mouse_relative_motion(offset, _last_mouse_motion, speed)
+	_last_mouse_motion = event
+	_send_or_record_event(event)
+	return self
+
+
+func mouse_set_position(position, global_position=null):
+	_last_mouse_motion = InputFactory.mouse_motion(position, global_position)
+	return self
+
+
 func send_event(event):
 	_send_or_record_event(event)
-
-
-func _on_queue_item_ready(item):
-	for event in item.events:
-		_send_event(event)
-
-	var done_event = _input_queue.pop_front()
-	done_event.queue_free()
-
-	if(_input_queue.size() == 0):
-		emit_signal("playback_finished")
-	else:
-		_input_queue[0].start()
-
-
-func _add_queue_item(item):
-	item.connect("event_ready", self, "_on_queue_item_ready", [item])
-	_next_queue_item = item
-	_input_queue.append(item)
-	Engine.get_main_loop().root.add_child(item)
-	if(_input_queue.size() == 1):
-		item.start()
-
-
-func wait(t):
-	var item = InputQueueItem.new(t, 0)
-	_add_queue_item(item)
-	return self
-
-
-func wait_frames(num_frames):
-	var item = InputQueueItem.new(0, num_frames)
-	_add_queue_item(item)
-	return self
