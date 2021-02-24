@@ -38,7 +38,7 @@
 # can also be used as a factory for creating InputEvents easier.  Just do not
 # add any receivers via the constructor or add_receiver.
 # ##############################################################################
-
+#extends "res://addons/gut/input_factory.gd"
 
 # Implemented InputEvent* convenience methods
 # 	InputEventAction
@@ -95,9 +95,11 @@ class InputQueueItem:
 			t.connect("timeout", self, "_on_time_timeout")
 
 
+var InputFactory = load("res://addons/gut/input_factory.gd")
 var _receivers = []
 var _input_queue = []
 var _next_queue_item = null
+var _last_key = null
 
 signal playback_finished
 
@@ -105,13 +107,6 @@ signal playback_finished
 func _init(r=null):
 	if(r != null):
 		add_receiver(r)
-
-
-func _to_scancode(which):
-	var key_code = which
-	if(typeof(key_code) == TYPE_STRING):
-		key_code = key_code.to_upper().to_ascii()[0]
-	return key_code
 
 
 func _send_event(event):
@@ -136,17 +131,6 @@ func _send_or_record_event(event):
 		_send_event(event)
 
 
-func _new_mouse_button_event(position, global_position, pressed, button_index):
-	var event = InputEventMouseButton.new()
-	event.position = position
-	if(global_position != null):
-		event.global_position = global_position
-	event.pressed = pressed
-	event.button_index = button_index
-
-	return event
-
-
 func add_receiver(obj):
 	_receivers.append(obj)
 
@@ -156,67 +140,67 @@ func get_receivers():
 
 
 func key_up(which):
-	var event = InputEventKey.new()
-	event.scancode = _to_scancode(which)
-	event.pressed = false
+	var event = InputFactory.key_up(which)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func key_down(which):
-	var event = InputEventKey.new()
-	event.scancode = _to_scancode(which)
-	event.pressed = true
+	var event = InputFactory.key_down(which)
 	_send_or_record_event(event)
-	return event
+	_last_key = event
+	return self
 
 
-func action_up(which, strength):
-	var event  = InputEventAction.new()
-	event.action = which
-	event.strength = strength
+func key_echo():
+	if(_last_key != null):
+		var new_key = _last_key.duplicate()
+		new_key.echo = true
+		_send_or_record_event(new_key)
+	return self
+
+
+func action_up(which, strength=1.0):
+	var event  = InputFactory.action_up(which, strength)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
-func action_down(which, strength):
-	var event  = InputEventAction.new()
-	event.action = which
-	event.strength = strength
-	event.pressed = true
+func action_down(which, strength=1.0):
+	var event  = InputFactory.action_down(which, strength)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func mouse_left_button_down(position, global_position=null):
-	var event = _new_mouse_button_event(position, global_position, true, BUTTON_LEFT)
+	var event = InputFactory.mouse_left_button_down(position, global_position)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func mouse_left_button_up(position, global_position=null):
-	var event = _new_mouse_button_event(position, global_position, false, BUTTON_LEFT)
+	var event = InputFactory.mouse_left_button_up(position, global_position)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func mouse_double_click(position, global_position=null):
-	var event = _new_mouse_button_event(position, global_position, false, BUTTON_LEFT)
+	var event = InputFactory.mouse_double_click(position, global_position)
 	event.doubleclick = true
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func mouse_right_button_down(position, global_position=null):
-	var event = _new_mouse_button_event(position, global_position, true, BUTTON_RIGHT)
+	var event = InputFactory.mouse_right_button_down(position, global_position)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func mouse_right_button_up(position, global_position=null):
-	var event = _new_mouse_button_event(position, global_position, false, BUTTON_RIGHT)
+	var event = InputFactory.mouse_right_button_up(position, global_position)
 	_send_or_record_event(event)
-	return event
+	return self
 
 
 func send_event(event):
@@ -248,8 +232,10 @@ func _add_queue_item(item):
 func wait(t):
 	var item = InputQueueItem.new(t, 0)
 	_add_queue_item(item)
+	return self
 
 
 func wait_frames(num_frames):
 	var item = InputQueueItem.new(0, num_frames)
 	_add_queue_item(item)
+	return self

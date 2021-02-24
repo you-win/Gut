@@ -61,11 +61,121 @@ class TestTheBasics:
 		assert_eq(sender.get_receivers(), [r])
 
 
-class TestSendEvent:
+class TestCreateKeyEvents:
 	extends "res://addons/gut/test.gd"
 
 	var InputSender = _utils.InputSender
 
+	func test_key_up_sends_event():
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		sender.key_up("C")
+		assert_eq(r.input_event.scancode, KEY_C)
+
+	func test_key_up_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.key_up('c'), sender)
+
+	func test_key_down_sends_event():
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		sender.key_down(KEY_Q)
+		assert_eq(r.input_event.scancode, KEY_Q)
+
+	func test_key_down_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.key_down('c'), sender)
+
+	func test_key_echo_sends_a_duplicate_of_last_key():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.key_down("a")
+		sender.key_echo()
+		assert_eq(r.inputs.size(), 2)
+
+	func test_key_echo_is_an_echo():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.key_down("a")
+		sender.key_echo()
+		assert_true(r.inputs[1].echo)
+
+	func test_echoed_key_is_a_dupe():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.key_down("a")
+		sender.key_echo()
+		assert_ne(r.inputs[0], r.inputs[1])
+
+	func test_if_no_last_key_echo_does_nothing():
+		var r = autofree(InputTracker.new())
+		var sender = InputSender.new(r)
+		sender.key_echo()
+		assert_eq(r.inputs.size(), 0)
+
+	func test_echo_key_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.key_echo(), sender)
+
+
+class TestCreateActionEvents:
+	extends "res://addons/gut/test.gd"
+
+	var InputSender = _utils.InputSender
+
+	func test_action_up_sends_event():
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		sender.action_up("foo", .5)
+		assert_eq(r.input_event.action, "foo")
+
+	func test_aciton_up_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.action_up("foo", .5), sender)
+
+	func test_action_down_sends_event():
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		sender.action_down("foo", .5)
+		assert_eq(r.input_event.action, "foo")
+
+	func test_action_down_returns_self():
+		var sender = InputSender.new()
+		assert_eq(sender.action_down("foo", .5), sender)
+
+
+class TestMouseButtons:
+	extends "res://addons/gut/test.gd"
+
+	var InputSender = _utils.InputSender
+
+	func assert_mouse_event_sends_event(method):
+		var r = autofree(HasInputEvents.new())
+		var sender = InputSender.new(r)
+		var returned = sender.call(method, Vector2(22, 22))
+		assert_eq(r.input_event.position, Vector2(22, 22), 'event sent')
+		assert_eq(returned, sender, "self returned")
+
+	func test_lmb_down():
+		assert_mouse_event_sends_event("mouse_left_button_down")
+
+	func test_lmb_up():
+		assert_mouse_event_sends_event("mouse_left_button_up")
+
+	func test_double_clickk():
+		assert_mouse_event_sends_event("mouse_double_click")
+
+	func test_rmb_down():
+		assert_mouse_event_sends_event("mouse_right_button_down")
+
+	func test_rmb_up():
+		assert_mouse_event_sends_event("mouse_right_button_up")
+
+
+class TestSendEvent:
+	extends "res://addons/gut/test.gd"
+
+	var InputSender = _utils.InputSender
 
 	func test_sends_event_to_input():
 		var r = autofree(HasInputEvents.new())
@@ -136,95 +246,6 @@ class TestSendEvent:
 		assert_null(thing.gui_event, 'gui event')
 
 
-class TestCreateKeyEvents:
-	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
-
-	func test_key_up_creates_event_for_key():
-		var sender = InputSender.new()
-		var event = sender.key_up(KEY_A)
-		assert_is(event, InputEventKey, 'is InputEventKey')
-		assert_eq(event.scancode, KEY_A)
-		assert_false(event.pressed, "pressed")
-
-	func test_key_up_converts_lowercase_string_to_scancode():
-		var sender = InputSender.new()
-		var event = sender.key_up('a')
-		assert_eq(event.scancode, KEY_A)
-
-	func test_key_up_converts_uppercase_string_to_scancode():
-		var sender = InputSender.new()
-		var event = sender.key_up('A')
-		assert_eq(event.scancode, KEY_A)
-
-	func test_key_down_creates_event_for_key():
-		var sender = InputSender.new()
-		var event = sender.key_down(KEY_B)
-		assert_is(event, InputEventKey, 'is InputEventKey')
-		assert_eq(event.scancode, KEY_B)
-		assert_true(event.pressed, "pressed")
-
-	func test_key_down_converts_lowercase_string_to_scancode():
-		var sender = InputSender.new()
-		var event = sender.key_down('z')
-		assert_eq(event.scancode, KEY_Z)
-
-	func test_key_up_sends_event():
-		var r = autofree(HasInputEvents.new())
-		var sender = InputSender.new(r)
-		sender.key_up("C")
-		assert_eq(r.input_event.scancode, KEY_C)
-
-	func test_key_down_sends_event():
-		var r = autofree(HasInputEvents.new())
-		var sender = InputSender.new(r)
-		sender.key_down(KEY_Q)
-		assert_eq(r.input_event.scancode, KEY_Q)
-
-
-class TestCreateActionEvents:
-	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
-
-	func test_action_up_creates_correct_class():
-		var sender = InputSender.new()
-		var e = sender.action_up("foo", 1.0)
-		assert_is(e, InputEventAction)
-
-	func test_action_up_sets_properties():
-		var sender = InputSender.new()
-		var e = sender.action_up("foo", .5)
-		assert_eq(e.action, "foo", "action name")
-		assert_eq(e.pressed, false, "pressed")
-		assert_eq(e.strength, .5, 'strength')
-
-	func test_action_up_sends_event():
-		var r = autofree(HasInputEvents.new())
-		var sender = InputSender.new(r)
-		sender.action_up("foo", .5)
-		assert_eq(r.input_event.action, "foo")
-
-	func test_action_down_creates_correct_class():
-		var sender = InputSender.new()
-		var e = sender.action_down("foo", 1.0)
-		assert_is(e, InputEventAction)
-
-	func test_action_down_sets_properties():
-		var sender = InputSender.new()
-		var e = sender.action_down("foo", .5)
-		assert_eq(e.action, "foo", "action name")
-		assert_eq(e.pressed, true, "pressed")
-		assert_eq(e.strength, .5, 'strength')
-
-	func test_action_down_sends_event():
-		var r = autofree(HasInputEvents.new())
-		var sender = InputSender.new(r)
-		sender.action_down("foo", .5)
-		assert_eq(r.input_event.action, "foo")
-
-
 class TestSequence:
 	extends "res://addons/gut/test.gd"
 
@@ -237,7 +258,6 @@ class TestSequence:
 		sender.wait_frames(1)
 		sender.key_down(KEY_Q)
 		assert_null(r.input_event)
-
 
 	func test_emits_signal_when_play_ends():
 		var r = add_child_autofree(InputTracker.new())
@@ -263,11 +283,12 @@ class TestSequence:
 		var cust_event = InputEventAction.new()
 		cust_event.action = "foobar"
 
-		sender.key_down(KEY_1)
-		sender.wait(.5)
-		sender.key_up(KEY_1)
-		sender.wait(.5)
-		sender.send_event(cust_event)
+		sender\
+			.key_down(KEY_1)\
+			.wait(.5)\
+			.key_up(KEY_1)\
+			.wait(.5)\
+			.send_event(cust_event)
 
 		assert_eq(r.inputs.size(), 1, "first input sent")
 
@@ -284,11 +305,12 @@ class TestSequence:
 		var cust_event = InputEventAction.new()
 		cust_event.action = "foobar"
 
-		sender.key_down(KEY_1)
-		sender.wait_frames(30)
-		sender.key_up(KEY_1)
-		sender.wait_frames(30)
-		sender.send_event(cust_event)
+		sender\
+			.key_down(KEY_1)\
+			.wait_frames(30)\
+			.key_up(KEY_1)\
+			.wait_frames(30)\
+			.send_event(cust_event)
 
 		assert_eq(r.inputs.size(), 1, "first input sent")
 
@@ -302,12 +324,13 @@ class TestSequence:
 		var r = add_child_autofree(InputTracker.new())
 		var sender = InputSender.new(r)
 
-		sender.key_down("z")
-		sender.wait(.5)
-		sender.key_down("a")
-		sender.key_down("b")
-		sender.wait(.5)
-		sender.key_down("c")
+		sender\
+			.key_down("z")\
+			.wait(.5)\
+			.key_down("a")\
+			.key_down("b")\
+			.wait(.5)\
+			.key_down("c")
 
 		yield(yield_to(sender, "playback_finished", 2), YIELD)
 		assert_eq(r.input_frames[1], r.input_frames[2])
@@ -318,82 +341,15 @@ class TestSequence:
 		var r = add_child_autofree(InputTracker.new())
 		var sender = InputSender.new(r)
 
-		sender.key_down("a")
-		sender.wait_frames(10)
-		sender.key_up("a")
-		sender.key_down("b")
-		sender.wait_frames(20)
-		sender.key_down("c")
+		sender\
+			.key_down("a")\
+			.wait_frames(10)\
+			.key_up("a")\
+			.key_down("b")\
+			.wait_frames(20)\
+			.key_down("c")
 
 		yield(yield_to(sender, "playback_finished", 2), YIELD)
 		assert_eq(r.input_frames[1], r.input_frames[2])
 		assert_eq(r.inputs[1].scancode, KEY_A)
 		assert_eq(r.inputs[2].scancode, KEY_B)
-
-
-class TestMouseButtons:
-	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
-
-	func assert_mouse_event_props(method, pressed, button_index):
-		var sender = InputSender.new()
-		var event = sender.call(method, (Vector2(10, 10)))
-		assert_is(event, InputEventMouseButton, 'correct class')
-		assert_eq(event.position, Vector2(10, 10), 'position')
-		assert_eq(event.pressed, pressed, 'pressed')
-		assert_eq(event.button_index, button_index, 'button_index')
-
-	func assert_mouse_event_positions(method):
-		var sender = InputSender.new()
-		var event = sender.call(method, Vector2(10, 10), Vector2(11, 11))
-		assert_eq(event.position, Vector2(10, 10), "position")
-		assert_eq(event.global_position, Vector2(11, 11), "global position")
-
-	func assert_mouse_event_sends_event(method):
-		var r = autofree(HasInputEvents.new())
-		var sender = InputSender.new(r)
-		var event = sender.call(method, Vector2(22, 22))
-		assert_eq(r.input_event, event, 'event sent')
-
-	func test_lmb_down():
-		assert_mouse_event_props("mouse_left_button_down", true, BUTTON_LEFT)
-		assert_mouse_event_positions("mouse_left_button_down")
-		assert_mouse_event_sends_event("mouse_left_button_down")
-
-	func test_lmb_up():
-		assert_mouse_event_props("mouse_left_button_up", false, BUTTON_LEFT)
-		assert_mouse_event_positions("mouse_left_button_up")
-		assert_mouse_event_sends_event("mouse_left_button_up")
-
-	func test_double_clickk():
-		assert_mouse_event_props("mouse_double_click", false, BUTTON_LEFT)
-		assert_mouse_event_positions("mouse_double_click")
-		assert_mouse_event_sends_event("mouse_double_click")
-		var sender = InputSender.new()
-		var event = sender.mouse_double_click(Vector2(1, 1))
-		assert_true(event.doubleclick, "double click")
-
-	func test_rmb_down():
-		assert_mouse_event_props("mouse_right_button_down", true, BUTTON_RIGHT)
-		assert_mouse_event_positions("mouse_right_button_down")
-		assert_mouse_event_sends_event("mouse_right_button_down")
-
-	func test_rmb_up():
-		assert_mouse_event_props("mouse_right_button_up", false, BUTTON_RIGHT)
-		assert_mouse_event_positions("mouse_right_button_up")
-		assert_mouse_event_sends_event("mouse_right_button_up")
-
-	# func test_what_chaining_looks_like():
-	# 	var r = autofree(InputTracker.new())
-	# 	var sender = InputSender.new(r)
-
-	# 	sender\
-	# 		.key_down('a')\
-	# 		.wait(.5)\
-	# 		.key_down("b")\
-	# 		.wait(.5)\
-	# 		.key_down("c")
-
-	# 	yield(sender, "playback_finished")
-	# 	assert_eq(r.inputs.size(), 3)

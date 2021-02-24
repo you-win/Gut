@@ -66,9 +66,9 @@ class InputProcessor:
 	func _input(event):
 		if(event is InputEventKey):
 			if(_last_printed_frame == _frame_count):
-				print("  and ", OS.get_scancode_string(event.scancode))
+				print("  and ", OS.get_scancode_string(event.scancode), ' ', event.is_echo())
 			else:
-				print(_frame_count, "  ", OS.get_scancode_string(event.scancode))
+				print(_frame_count, "  ", OS.get_scancode_string(event.scancode), ' ', event.is_echo())
 			_last_printed_frame = _frame_count
 
 
