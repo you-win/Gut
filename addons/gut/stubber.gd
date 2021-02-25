@@ -36,7 +36,10 @@ func _make_key_from_variant(obj, subpath=null):
 			if(subpath != null and subpath != ''):
 				to_return += str('-', subpath)
 		TYPE_OBJECT:
-			if(_utils.is_instance(obj)):
+			if(obj == Input):
+				_lgr.error("You cannot stub Input, only doubles of Input.")
+				to_return = null
+			elif(_utils.is_instance(obj)):
 				to_return = _make_key_from_metadata(obj)
 			elif(_utils.is_native_class(obj)):
 				to_return = _utils.get_native_class_name(obj)

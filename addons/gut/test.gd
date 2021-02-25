@@ -1329,6 +1329,7 @@ func double_inner(path, subpath, strategy=null):
 	var override_strat = _utils.nvl(strategy, gut.get_doubler().get_strategy())
 	return gut.get_doubler().double_inner(path, subpath, override_strat)
 
+
 # ------------------------------------------------------------------------------
 # Add a method that the doubler will ignore.  You can pass this the path to a
 # script or scene or a loaded script or scene.  When running tests, these

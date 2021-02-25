@@ -142,4 +142,18 @@ func  test_you_cannot_stub_init_to_do_nothing():
 	assert_false(gr.stubber.should_call_super(inst, '_init'), 'stub not created')
 	assert_eq(gr.stubber.get_logger().get_errors().size(), err_count + 1, 'error generated')
 
+func test_can_stub_input_double_to_return_values():
+	gr.doubler.set_stubber(gr.stubber)
+	var inst = gr.doubler.double_singleton("Input").new()
+	var params = _utils.StubParams.new(inst, 'is_action_just_pressed').to_return(true)
+	gr.stubber.add_stub(params)
+	assert_true(inst.is_action_just_pressed("foo"))
 
+func test_cannot_stub_input_double_using_Input():
+	gr.doubler.set_stubber(gr.stubber)
+	gr.stubber.set_logger(_utils.Logger.new())
+	var params = _utils.StubParams.new(Input, 'is_action_just_pressed').to_return(true)
+	gr.stubber.add_stub(params)
+	var inst = gr.doubler.double_singleton("Input").new()
+	assert_null(inst.is_action_just_pressed("foo"), "was not stubbed")
+	assert_eq(gr.stubber._lgr.get_errors().size(), 1, "generated error")
