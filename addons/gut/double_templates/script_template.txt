@@ -12,6 +12,7 @@ var __gut_metadata_ = {
 	spy = __gut_instance_from_id({spy_id}),
 	gut = __gut_instance_from_id({gut_id}),
 	from_singleton = '{singleton_name}',
+	is_partial = {is_partial}
 }
 
 func __gut_instance_from_id(inst_id):

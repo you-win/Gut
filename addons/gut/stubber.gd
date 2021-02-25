@@ -140,15 +140,26 @@ func get_return(obj, method, parameters=null):
 		return null
 
 func should_call_super(obj, method, parameters=null):
+	if(_utils.non_super_methods.has(method)):
+		return false
+
 	var stub_info = _find_stub(obj, method, parameters)
+
+	var is_partial = false
+	if(typeof(obj) != TYPE_STRING): # some stubber tests test with strings
+		is_partial = obj.__gut_metadata_.is_partial
+	var should_call_super = is_partial
+
 	if(stub_info != null):
-		return stub_info.call_super
-	else:
+		should_call_super = stub_info.call_super
+	elif(!is_partial):
 		# this log message is here because of how the generated doubled scripts
 		# are structured.  With this log msg here, you will only see one
 		# "unstubbed" info instead of multiple.
 		_lgr.info('Unstubbed call to ' + method + '::' + _strutils.type2str(obj))
-		return false
+		should_call_super = false
+
+	return should_call_super
 
 
 func clear():

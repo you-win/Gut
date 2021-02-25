@@ -338,19 +338,6 @@ var _make_files = false
 # used by tests for debugging purposes.
 var _print_source = false
 
-# These methods all call super implicitly.  Stubbing them to call super causes
-# super to be called twice.
-var _non_super_methods = [
-	"_init",
-	"_ready",
-	"_notification",
-	"_enter_world",
-	"_exit_world",
-	"_process",
-	"_physics_process",
-	"_exit_tree",
-	"_gui_input	",
-]
 
 func _init(strategy=_utils.DOUBLE_STRATEGY.PARTIAL):
 	set_logger(_utils.get_logger())
@@ -366,8 +353,21 @@ func _get_indented_line(indents, text):
 	return str(to_return, text, "\n")
 
 
+func _stub_to_do_nothing(obj_info, method_name):
+	var path = obj_info.get_path()
+	if(obj_info.is_singleton()):
+		path = obj_info.get_singleton_name()
+	elif(obj_info.scene_path != null):
+		path = obj_info.scene_path
+
+	var params = _utils.StubParams.new(path, method_name, obj_info.get_subpath())
+	params.to_do_nothing()
+	_stubber.add_stub(params)
+
+
+
 func _stub_to_call_super(obj_info, method_name):
-	if(_non_super_methods.has(method_name)):
+	if(_utils.non_super_methods.has(method_name)):
 		return
 
 	var path = obj_info.get_path()
@@ -406,7 +406,8 @@ func _get_base_script_text(obj_info, override_path):
 		"extends":obj_info.get_extends_text(),
 		"gut_id":gut_id,
 		"singleton_name":_utils.nvl(obj_info.get_singleton_name(), ''),
-		"constants":obj_info.get_constants_text()
+		"constants":obj_info.get_constants_text(),
+		"is_partial":str(obj_info.make_partial_double).to_lower()
 	}
 
 	return _base_script_text.format(values)
@@ -432,8 +433,6 @@ func _write_file(obj_info, dest_path, override_path=null):
 	f.store_string(base_script)
 
 	for i in range(script_methods.local_methods.size()):
-		if(obj_info.make_partial_double):
-			_stub_to_call_super(obj_info, script_methods.local_methods[i].name)
 		f.store_string(_get_func_text(script_methods.local_methods[i], super_name))
 
 	for i in range(script_methods.built_ins.size()):

@@ -106,6 +106,22 @@ var _file_checker = File.new()
 var latest_version = null
 var should_display_latest_version = false
 
+
+# These methods all call super implicitly.  Stubbing them to call super causes
+# super to be called twice.
+var non_super_methods = [
+	"_init",
+	"_ready",
+	"_notification",
+	"_enter_world",
+	"_exit_world",
+	"_process",
+	"_physics_process",
+	"_exit_tree",
+	"_gui_input	",
+]
+
+
 func _ready() -> void:
 	_http_request_latest_version()
 
