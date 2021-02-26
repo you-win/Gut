@@ -522,5 +522,25 @@ class TestDoubleSingleton:
 		var doubled = _doubler.double_singleton("Input").new()
 		assert_eq(doubled.CURSOR_VSPLIT, Input.CURSOR_VSPLIT)
 
+	func test_partial_double_gets_properties():
+		var doubled = _doubler.partial_double_singleton("ARVRServer").new()
+		assert_eq(doubled.world_scale, 1.0, "property")
+		assert_eq(doubled.get_world_scale(), 1.0, "accessor")
 
+	func test_double_gets_properties():
+		var doubled = _doubler.double_singleton("ARVRServer").new()
+		assert_null(doubled.world_scale)
 
+	var eligible_singletons = [
+		"ARVRServer", "AudioServer","CameraServer",
+		"IP", "Input", "InputMap",
+		"JavaClassWrapper", "JavaScript", "Performance",
+		"ProjectSettings",
+		"TranslationServer",
+	]
+			# "Physics2DServer"  "PhysicsServer" "VisualServer"
+	func test_can_make_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
+		assert_not_null(_doubler.double_singleton(singleton), singleton)
+
+	func test_can_make_partial_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
+		assert_not_null(_doubler.partial_double_singleton(singleton), singleton)

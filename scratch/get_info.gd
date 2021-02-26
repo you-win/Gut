@@ -15,6 +15,7 @@ const DEFAULT_ARGS = 'default_args'
 const NAME = 'name'
 const ARGS = 'args'
 
+var _utils = load('res://addons/gut/utils.gd').new()
 
 class HasSomeInners:
 
@@ -96,7 +97,8 @@ func print_method_info(obj):
 	for i in range(methods.size()):
 		print(methods[i]['name'])
 		if(methods[i]['default_args'].size() > 0):
-			print(" *** here be defaults ***")
+			print("     ", methods[i]['default_args'])
+			#print(" *** here be defaults ***")
 
 		if(methods[i]['flags'] == 65):
 			for key in methods[i]:
@@ -135,13 +137,17 @@ func get_defaults_and_types(method_meta):
 
 
 func class_db_stuff(name="Node2D"):
-	print("exists ", ClassDB.class_exists(name))
-	print("can instance ", ClassDB.can_instance(name))
-	print('category = ',  ClassDB.class_get_category(name))
+	print("ClassDB for ", name)
+	print("  exists = ", ClassDB.class_exists(name))
+	if(!ClassDB.class_exists(name)):
+		return
+	print("  can instance = ", ClassDB.can_instance(name))
+	print('  category = ',  ClassDB.class_get_category(name))
+	print("  endabled = ", ClassDB.is_class_enabled(name))
 
 	#print(str(JSON.print(ClassDB.class_get_method_list(name), ' ')))
-	print("constants:\n", ClassDB.class_get_integer_constant_list(name))
-	print("properties:\n", ClassDB.class_get_property_list(name))
+	print("  constants:\n", JSON.print(ClassDB.class_get_integer_constant_list(name), "  "))
+	print("  properties:\n", JSON.print(ClassDB.class_get_property_list(name), "  "))
 	# print(ClassDB.get_class_list())
 
 
@@ -240,15 +246,56 @@ func print_all_info(thing):
 	for i in range(props.size()):
 		print('  ', props[i].name, props[i])
 
+
+func print_all_non_instancable_classes():
+	var classes = ClassDB.get_class_list()
+	for c in classes:
+		if(!ClassDB.can_instance(c)):
+			print(c)
+
+func get_singleton_by_name(name):
+	var source = str("const singleton = ", name)
+	var script = GDScript.new()
+	script.set_source_code(source)
+	script.reload()
+	return script.singleton
+
+
+func print_all_instanced_classes():
+	var classes = ClassDB.get_class_list()
+
+	# these blow up when used with get_singleton_by_name
+	var bad_ones = [
+		"Object",
+		"GDScriptNativeClass",
+		"Physics2DDirectSpaceStateSW",
+		"BulletPhysicsDirectSpaceState"
+	]
+
+	var instanced = []
+	for c in classes:
+		# in addition to the bad_ones, anything that starts with "_" blows
+		# up in get_singleton_by_name
+		if(c.substr(0, 1) == "_" or bad_ones.has(c)):
+			print("skip ", c)
+		else:
+			if(_utils.is_instance(get_singleton_by_name(c))):
+				instanced.append(c)
+
+	instanced.sort()
+	for inst in instanced:
+		print(inst)
+
 func _init():
-	#print_all_info(Input)
-	class_db_stuff("Input")
+	print_all_info(Physics2DServer)
+	print_method_info(Physics2DServer)
+	#class_db_stuff("ARVRServer")
+	#class_db_stuff("Node")
+	#print(ClassDB.get_class_list(), "  ")
+	#print_all_non_instancable_classes()
+	#print_all_instanced_classes()
 	quit()
 
-	var r = Reference.new()
-	var r2 = r
-	var r3 = r
-	var r4 = r
 	#print_all_info(r)
 	#print(r.get('Reference'))
 

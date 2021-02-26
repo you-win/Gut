@@ -248,6 +248,36 @@ class ObjectInfo:
 
 		return text
 
+	func get_properties_text():
+		if(!is_singleton()):
+			return ""
+
+		var text = str("# -----\n# ", _singleton_name, " Properties\n# -----\n")
+		var props = ClassDB.class_get_property_list(_singleton_name)
+		for prop in props:
+			var accessors = {"setter":null, "getter":null}
+			var prop_text = str("var ", prop["name"])
+
+			var getter_name = "get_" + prop["name"]
+			if(ClassDB.class_has_method(_singleton_name, getter_name)):
+				accessors.getter = getter_name
+			else:
+				getter_name = "is_" + prop["name"]
+				if(ClassDB.class_has_method(_singleton_name, getter_name)):
+					accessors.getter = getter_name
+
+			var setter_name = "set_" + prop["name"]
+			if(ClassDB.class_has_method(_singleton_name, setter_name)):
+				accessors.setter = setter_name
+
+			var setget_text = ""
+			if(accessors.setter != null and accessors.getter != null):
+				setget_text = str("setget ", accessors.setter, ", ", accessors.getter)
+
+			text += str(prop_text, " ", setget_text, "\n")
+
+		return text
+
 
 # ------------------------------------------------------------------------------
 # Allows for interacting with a file but only creating a string.  This was done
@@ -399,14 +429,18 @@ func _get_base_script_text(obj_info, override_path):
 		gut_id = _gut.get_instance_id()
 
 	var values = {
+		# Top  sections
+		"extends":obj_info.get_extends_text(),
+		"constants":obj_info.get_constants_text(),
+		"properties":obj_info.get_properties_text(),
+
+		# metadata values
 		"path":path,
 		"subpath":obj_info.get_subpath(),
 		"stubber_id":stubber_id,
 		"spy_id":spy_id,
-		"extends":obj_info.get_extends_text(),
 		"gut_id":gut_id,
 		"singleton_name":_utils.nvl(obj_info.get_singleton_name(), ''),
-		"constants":obj_info.get_constants_text(),
 		"is_partial":str(obj_info.make_partial_double).to_lower()
 	}
 
