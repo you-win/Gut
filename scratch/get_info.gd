@@ -53,6 +53,13 @@ class ExtendsNode2D:
 class SimpleObject:
 	var a = 'a'
 
+
+func sort_and_print_array(a):
+	a.sort()
+	for item in a:
+		print(item)
+
+
 func get_methods_by_flag(obj):
 	var methods_by_flags = {}
 	var methods = obj.get_method_list()
@@ -247,19 +254,17 @@ func print_all_info(thing):
 		print('  ', props[i].name, props[i])
 
 
+# can_instance doesn't appear to be returning a consistent flag.  For
+# example Font is included in this list which you can for sure make
+# an instance of.  But Input is  in the list which you cannot.
 func print_all_non_instancable_classes():
 	var classes = ClassDB.get_class_list()
+	var nons = []
 	for c in classes:
 		if(!ClassDB.can_instance(c)):
-			print(c)
+			nons.append(c)
 
-func get_singleton_by_name(name):
-	var source = str("const singleton = ", name)
-	var script = GDScript.new()
-	script.set_source_code(source)
-	script.reload()
-	return script.singleton
-
+	sort_and_print_array(nons)
 
 func print_instanced_ClassDB_classes(invert=false):
 	var classes = ClassDB.get_class_list()
@@ -279,27 +284,27 @@ func print_instanced_ClassDB_classes(invert=false):
 		if(c.substr(0, 1) == "_" or bad_ones.has(c)):
 			print("skip ", c)
 		else:
-			var is_inst = _utils.is_instance(get_singleton_by_name(c))
+			var is_inst = _utils.is_instance(_utils.get_singleton_by_name(c))
 			if(is_inst or !is_inst and invert):
 				instanced.append(c)
 
-	instanced.sort()
 	if(invert):
 		print("\nNon-Instanced Classes\n------")
 	else:
 		print("\nInstanced Classes\n------")
 
-	for inst in instanced:
-		print(inst)
+	sort_and_print_array(instanced)
 
 func _init():
+	sort_and_print_array(Array(ClassDB.get_class_list()))
 	#print_all_info(Physics2DServer)
 	#print_method_info(Physics2DServer)
 	#class_db_stuff("ARVRServer")
 	#class_db_stuff("Node")
 	#print(ClassDB.get_class_list(), "  ")
 	#print_all_non_instancable_classes()
-	print_instanced_ClassDB_classes()
+	#print_instanced_ClassDB_classes()
+	#print_all_non_instancable_classes()
 	quit()
 
 	#print_all_info(r)

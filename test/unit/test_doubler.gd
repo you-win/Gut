@@ -545,9 +545,9 @@ class TestDoubleSingleton:
 		"ProjectSettings", "PhysicsServer", "VisualServer",
 		"TranslationServer", "Physics2DServer"
 	]
-	func test_can_make_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
+	func test_can_make_doubles_of_all_eligible_singletons(singleton = use_parameters(eligible_singletons)):
 		assert_not_null(_doubler.double_singleton(singleton), singleton)
 
-	func test_can_make_partial_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
+	func test_can_make_partial_doubles_of_all_eligible_singletons(singleton = use_parameters(eligible_singletons)):
 		assert_not_null(_doubler.partial_double_singleton(singleton), singleton)
 

@@ -123,15 +123,6 @@ class ObjectInfo:
 		if(subpath != null):
 			_subpaths = Array(subpath.split('/'))
 
-
-	func _get_singleton_by_name(name):
-		var source = str("const singleton = ", name)
-		var script = GDScript.new()
-		script.set_source_code(source)
-		script.reload()
-		return script.singleton
-
-
 	# Returns an instance of the class/inner class
 	func instantiate():
 		var to_return = null
@@ -207,7 +198,7 @@ class ObjectInfo:
 
 	func set_singleton_name(singleton_name):
 		_singleton_name = singleton_name
-		_singleton_instance = _get_singleton_by_name(_singleton_name)
+		_singleton_instance = _utils.get_singleton_by_name(_singleton_name)
 
 
 	func is_singleton():

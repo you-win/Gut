@@ -73,6 +73,18 @@ class TestType2Str:
 		var d = double(InnerClasses, 'InnerA').new()
 		assert_eq(strutils.type2str(d), str(d) + '(double of inner_classes.gd/InnerA)')
 
+	func test_partial_double():
+		var d = partial_double(DOUBLE_ME_PATH).new()
+		assert_string_contains(strutils.type2str(d), "partial-double")
+
+	func test_singleton_double_includes_singleton_name():
+		var d = double_singleton("Input").new()
+		assert_string_contains(strutils.type2str(d), "double of Input")
+
+	func test_singleton_double_includes_word_singleton():
+		var d = double_singleton("Input").new()
+		assert_string_contains(strutils.type2str(d), "Singleton")
+
 	func test_assert_null():
 		assert_eq(strutils.type2str(null), str(null))
 
@@ -92,7 +104,7 @@ class TestType2Str:
 	func test_returns_null_for_just_freed_objects():
 		var n = autofree(Node.new())
 		n.free()
-		assert_eq(strutils.type2str(n), '[Deleted Object]', 'sometimes fails based on timing.')
+		assert_eq(str(n), '[Deleted Object]', 'sometimes fails based on timing.')
 
 	func test_memory_leak():
 		print(gut.get_orphan_counter().orphan_count(), ' t-1')
