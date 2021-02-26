@@ -261,7 +261,7 @@ func get_singleton_by_name(name):
 	return script.singleton
 
 
-func print_all_instanced_classes():
+func print_instanced_ClassDB_classes(invert=false):
 	var classes = ClassDB.get_class_list()
 
 	# these blow up when used with get_singleton_by_name
@@ -279,21 +279,27 @@ func print_all_instanced_classes():
 		if(c.substr(0, 1) == "_" or bad_ones.has(c)):
 			print("skip ", c)
 		else:
-			if(_utils.is_instance(get_singleton_by_name(c))):
+			var is_inst = _utils.is_instance(get_singleton_by_name(c))
+			if(is_inst or !is_inst and invert):
 				instanced.append(c)
 
 	instanced.sort()
+	if(invert):
+		print("\nNon-Instanced Classes\n------")
+	else:
+		print("\nInstanced Classes\n------")
+
 	for inst in instanced:
 		print(inst)
 
 func _init():
-	print_all_info(Physics2DServer)
-	print_method_info(Physics2DServer)
+	#print_all_info(Physics2DServer)
+	#print_method_info(Physics2DServer)
 	#class_db_stuff("ARVRServer")
 	#class_db_stuff("Node")
 	#print(ClassDB.get_class_list(), "  ")
 	#print_all_non_instancable_classes()
-	#print_all_instanced_classes()
+	print_instanced_ClassDB_classes()
 	quit()
 
 	#print_all_info(r)

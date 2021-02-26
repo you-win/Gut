@@ -321,6 +321,15 @@ class TestDefaultParameters:
 		var sig = 'func draw_multimesh(p_multimesh=null, p_texture=null, p_normal_map=null):'
 		assert_string_contains(get_instance_source(inst), sig)
 
+	var singletons = [
+		"Physics2DServer",	# TYPE_TRANSFORM2D, TYPE_RID
+		"PhysicsServer",	# TYPE_TRANSFORM
+		"VisualServer"		# TYPE_REAL_ARRAY, TYPE_INT_ARRAY
+	]
+	func test_various_singletons_that_introduced_new_default_types(singleton = use_parameters(singletons)):
+		assert_not_null(doubler.double_singleton(singleton).new())
+
+
 class TestDoubleInnerClasses:
 	extends BaseTest
 
@@ -420,11 +429,6 @@ class TestPartialDoubles:
 		var text = get_instance_source(inst)
 		assert_false(text.match("*__gut_should_call_super('_init'*"), 'should not call super _init')
 
-	# when moving from storing doubles on disk to loading them directly from
-	# a string I think this scenario was created.  I don't know if it something
-	# to worry about but here is a failing test until that is decided.
-	# Note:  setting make_files didn't fix it so maybe this has always been
-	# an issue.
 	func test_can_partial_and_normal_double_in_same_test():
 		var double = doubler.double(DOUBLE_ME_PATH).new()
 		var p_double = doubler.partial_double(DOUBLE_ME_PATH).new()
@@ -531,16 +535,19 @@ class TestDoubleSingleton:
 		var doubled = _doubler.double_singleton("ARVRServer").new()
 		assert_null(doubled.world_scale)
 
+	# These singletons were found using print_instanced_ClassDB_classes in
+	# scratch/get_info.gd and are most likely the only singletons that
+	# should be doubled as of now.
 	var eligible_singletons = [
 		"ARVRServer", "AudioServer","CameraServer",
 		"IP", "Input", "InputMap",
 		"JavaClassWrapper", "JavaScript", "Performance",
-		"ProjectSettings",
-		"TranslationServer",
+		"ProjectSettings", "PhysicsServer", "VisualServer",
+		"TranslationServer", "Physics2DServer"
 	]
-			# "Physics2DServer"  "PhysicsServer" "VisualServer"
 	func test_can_make_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
 		assert_not_null(_doubler.double_singleton(singleton), singleton)
 
 	func test_can_make_partial_doubles_of_all_eligible_singletons(var singleton = use_parameters(eligible_singletons)):
 		assert_not_null(_doubler.partial_double_singleton(singleton), singleton)
+
