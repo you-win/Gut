@@ -4,11 +4,19 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
-# x.x.x
+# 7.2.0
+## Features
+* Beta features for simulating user input.  Try them out and let me know how you like them.
+  * `InputFactory` contains helper methods to streamline the creation of `InputEvent`s to send to your objects.  Create key, action, mouse button and mouse motion events with a single line of code.
+  * `InputSender` sends `InputEvent`s to your objects or directly to `Input`.  Create sequences of input that are played back including pauses between inputs.
+  * You can now `double` and `partial_double` the `Input` singleton (and other Godot singletons).  These doubles punch through to their source singletons instead of calling super class methods.
+  * See See [Mocking Input](https://github.com/bitwes/Gut/wiki/Mocking-Input) and [Doubling Singletons](https://github.com/bitwes/Gut/wiki/Doubling-Singletons) for the details.
+
 
 ## Bug Fixes
 * __Issue 268__ Add message when `assert_signal_emitted_with_parameters` is passed bad parameters.
 * __Issue 258__ `yield_to` now supports signals with up to 9 parameters.  This is the same limit  supported by `watch_signals`.
+
 
 
 
