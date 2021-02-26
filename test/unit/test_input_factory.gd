@@ -4,8 +4,6 @@ extends "res://addons/gut/test.gd"
 class TestCreateKeyEvents:
 	extends "res://addons/gut/test.gd"
 
-	var InputFactory = _utils.InputFactory
-
 	func test_key_up_creates_event_for_key():
 		var event = InputFactory.key_up(KEY_A)
 		assert_is(event, InputEventKey, 'is InputEventKey')
@@ -34,8 +32,6 @@ class TestCreateKeyEvents:
 class TestCreateActionEvents:
 	extends "res://addons/gut/test.gd"
 
-	var InputFactory = _utils.InputFactory
-
 	func test_action_up_creates_correct_class():
 		var e = InputFactory.action_up("foo", 1.0)
 		assert_is(e, InputEventAction)
@@ -49,7 +45,6 @@ class TestCreateActionEvents:
 	func test_action_up_defaults_strength():
 		var e = InputFactory.action_up("foo")
 		assert_eq(e.strength, 1.0)
-
 
 	func test_action_down_creates_correct_class():
 		var e = InputFactory.action_down("foo", 1.0)
@@ -68,8 +63,6 @@ class TestCreateActionEvents:
 
 class TestMouseButtons:
 	extends "res://addons/gut/test.gd"
-
-	var InputFactory = _utils.InputFactory
 
 	func assert_mouse_event_props(method, pressed, button_index):
 		var event = InputFactory.call(method, (Vector2(10, 10)))
@@ -107,8 +100,6 @@ class TestMouseButtons:
 
 class TestMouseMotion:
 	extends "res://addons/gut/test.gd"
-
-	var InputFactory = _utils.InputFactory
 
 	func test_creates_correct_event_type():
 		var e = InputFactory.mouse_motion(Vector2(1, 1))

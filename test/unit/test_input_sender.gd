@@ -44,8 +44,6 @@ class InputTracker:
 class TestTheBasics:
 	extends "res://addons/gut/test.gd"
 
-	var InputSender = _utils.InputSender
-
 	func test_can_make_one():
 		assert_not_null(InputSender.new())
 
@@ -63,8 +61,6 @@ class TestTheBasics:
 
 class TestCreateKeyEvents:
 	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
 
 	func test_key_up_sends_event():
 		var r = autofree(HasInputEvents.new())
@@ -121,8 +117,6 @@ class TestCreateKeyEvents:
 class TestCreateActionEvents:
 	extends "res://addons/gut/test.gd"
 
-	var InputSender = _utils.InputSender
-
 	func test_action_up_sends_event():
 		var r = autofree(HasInputEvents.new())
 		var sender = InputSender.new(r)
@@ -146,8 +140,6 @@ class TestCreateActionEvents:
 
 class TestMouseButtons:
 	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
 
 	func assert_mouse_event_sends_event(method):
 		var r = autofree(HasInputEvents.new())
@@ -174,8 +166,6 @@ class TestMouseButtons:
 
 class TestMouseMotion:
 	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
 
 	func test_mouse_motion_sends_event():
 		var r = autofree(InputTracker.new())
@@ -242,8 +232,6 @@ class TestMouseMotion:
 
 class TestSendEvent:
 	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
 
 	func test_sends_event_to_input():
 		var r = autofree(HasInputEvents.new())
@@ -315,8 +303,6 @@ class TestSendEvent:
 
 class TestSequence:
 	extends "res://addons/gut/test.gd"
-
-	var InputSender = _utils.InputSender
 
 	func test_when_recoding_events_are_not_sent():
 		var r = autofree(HasInputEvents.new())

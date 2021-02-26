@@ -145,6 +145,8 @@ var _strutils = _utils.Strutils.new()
 # syntax sugar
 var ParameterFactory = _utils.ParameterFactory
 var CompareResult = _utils.CompareResult
+var InputFactory = _utils.InputFactory
+var InputSender = _utils.InputSender
 
 func _init():
 	DOUBLE_STRATEGY = _utils.DOUBLE_STRATEGY # yes, this is right

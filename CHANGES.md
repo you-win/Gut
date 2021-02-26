@@ -6,11 +6,14 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 # 7.2.0
 ## Features
-* Beta features for simulating user input.  Try them out and let me know how you like them.
+* Beta features for simulating user input.  Try them out and let me know what you like and what is missing.
   * `InputFactory` contains helper methods to streamline the creation of `InputEvent`s to send to your objects.  Create key, action, mouse button and mouse motion events with a single line of code.
   * `InputSender` sends `InputEvent`s to your objects or directly to `Input`.  Create sequences of input that are played back including pauses between inputs.
+  ```
+  sender.action_down("dwn").wait(.1).action_down("dwn-fwd").wait(.1).action_down("fwd").action_down("HP")
+  ```
   * You can now `double` and `partial_double` the `Input` singleton (and other Godot singletons).  These doubles punch through to their source singletons instead of calling super class methods.
-  * See See [Mocking Input](https://github.com/bitwes/Gut/wiki/Mocking-Input) and [Doubling Singletons](https://github.com/bitwes/Gut/wiki/Doubling-Singletons) for the details.
+  * See [Mocking Input](https://github.com/bitwes/Gut/wiki/Mocking-Input) and [Doubling Singletons](https://github.com/bitwes/Gut/wiki/Doubling-Singletons) for the details.
 
 
 ## Bug Fixes
