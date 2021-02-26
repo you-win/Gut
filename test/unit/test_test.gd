@@ -1408,6 +1408,7 @@ class TestReplaceNode:
 		gr.test.replace_node(_arena, old, replacement)
 		assert_errored(gr.test)
 
+
 class TestAssertIsFreed:
 	extends BaseTestClass
 
@@ -1443,6 +1444,7 @@ class TestAssertIsFreed:
 		obj.queue_free()
 		gr.test.assert_not_freed(obj, "Object4")
 		assert_pass(gr.test)
+
 
 class TestConnectionAsserts:
 	extends BaseTestClass
@@ -1531,6 +1533,7 @@ class TestParameterizedTests:
 		var ph = gr.test_with_gut.gut.get_parameter_handler()
 		gr.test_with_gut.use_parameters(['a', 'b', 'c', 'd'])
 		assert_eq(gr.test_with_gut.gut.get_parameter_handler(), ph)
+
 
 class TestMemoryMgmt:
 	extends 'res://addons/gut/test.gd'
@@ -1654,6 +1657,7 @@ class TestTestStateChecking:
 		_run_test('TestUseIsFailingInAfterAll', 'test_nothing')
 		assert_eq(_gut.get_logger().get_errors().size(), 1)
 
+
 class TestPassFailTestMethods:
 	extends BaseTestClass
 
@@ -1721,13 +1725,12 @@ class TestCompareDeepShallow:
 		gr.test.assert_ne_shallow({'a':1}, {'a':1})
 		assert_fail(gr.test)
 
+
 class TestAssertSetgetCalled:
 	extends BaseTestClass
 
-
 	const TestNode = preload("res://test/resources/test_assert_setget_test_objects/test_node.gd")
 	const TestScene = preload("res://test/resources/test_assert_setget_test_objects/TestScene.tscn")
-
 
 	var bad_input = [
 		# Passing instance instead of classe
