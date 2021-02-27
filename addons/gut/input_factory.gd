@@ -35,13 +35,13 @@
 # 	InputEventAction
 # 	InputEventKey
 # 	InputEventMouseButton
+# 	InputEventMouseMotion
 
 # Yet to implement InputEvents
 # 	InputEventJoypadButton
 # 	InputEventJoypadMotion
 # 	InputEventMagnifyGesture
 # 	InputEventMIDI
-# 	InputEventMouseMotion
 # 	InputEventPanGesture
 # 	InputEventScreenDrag
 # 	InputEventScreenTouch

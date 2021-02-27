@@ -1057,8 +1057,8 @@ func _validate_assert_setget_called_input(type, name_property
 	return result
 
 # ------------------------------------------------------------------------------
-# Validates the single_name is a string and exists.  Errors when conditions not
-# met.  Returns true/false if singleton_name is valid or not.
+# Validates the singleton_name is a string and exists.  Errors when conditions
+# are not met.  Returns true/false if singleton_name is valid or not.
 # ------------------------------------------------------------------------------
 func _validate_singleton_name(singleton_name):
 	var is_valid = true

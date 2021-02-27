@@ -36,6 +36,9 @@ func _make_key_from_variant(obj, subpath=null):
 			if(subpath != null and subpath != ''):
 				to_return += str('-', subpath)
 		TYPE_OBJECT:
+			# TODO this doesn't seem necessary now that we know there are more
+			# singletons or we  should check for ALL singletons or the stubber
+			# should use "from_singleton" somehow to allow this type of stubbing.
 			if(obj == Input):
 				_lgr.error("You cannot stub Input, only doubles of Input.")
 				to_return = null

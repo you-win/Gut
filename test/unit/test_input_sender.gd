@@ -233,6 +233,13 @@ class TestMouseMotion:
 class TestSendEvent:
 	extends "res://addons/gut/test.gd"
 
+
+	func test_send_event_returns_self():
+		var sender = InputSender.new()
+		var e = InputEventKey.new()
+		var ret_val = sender.send_event(e)
+		assert_eq(ret_val, sender)
+
 	func test_sends_event_to_input():
 		var r = autofree(HasInputEvents.new())
 		var sender = InputSender.new(r)

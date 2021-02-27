@@ -374,19 +374,6 @@ func _get_indented_line(indents, text):
 	return str(to_return, text, "\n")
 
 
-func _stub_to_do_nothing(obj_info, method_name):
-	var path = obj_info.get_path()
-	if(obj_info.is_singleton()):
-		path = obj_info.get_singleton_name()
-	elif(obj_info.scene_path != null):
-		path = obj_info.scene_path
-
-	var params = _utils.StubParams.new(path, method_name, obj_info.get_subpath())
-	params.to_do_nothing()
-	_stubber.add_stub(params)
-
-
-
 func _stub_to_call_super(obj_info, method_name):
 	if(_utils.non_super_methods.has(method_name)):
 		return

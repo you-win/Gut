@@ -44,13 +44,13 @@
 # 	InputEventAction
 # 	InputEventKey
 # 	InputEventMouseButton
+#	InputEventMouseMotion
 
 # Yet to implement InputEvents
 # 	InputEventJoypadButton
 # 	InputEventJoypadMotion
 # 	InputEventMagnifyGesture
 # 	InputEventMIDI
-# 	InputEventMouseMotion
 # 	InputEventPanGesture
 # 	InputEventScreenDrag
 # 	InputEventScreenTouch
@@ -262,3 +262,4 @@ func mouse_set_position(position, global_position=null):
 
 func send_event(event):
 	_send_or_record_event(event)
+	return self
