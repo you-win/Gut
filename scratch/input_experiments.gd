@@ -115,7 +115,6 @@ func make_input_event():
 	print(event.is_action("foo"))
 
 
-
 func kick_off_actions():
 	var sender = InputSender.new()
 	get_root().add_child(sender)
@@ -125,6 +124,7 @@ func kick_off_actions():
 	get_root().add_child(processor)
 
 	yield(sender, "done")
+
 
 func kick_off_keys():
 	var sender = InputSender.new()

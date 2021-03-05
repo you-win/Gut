@@ -88,6 +88,11 @@ class TestBasics:
 		gr.test.stub(n, 'something').to_return(3)
 		assert_eq(gr.test.get_logger().get_errors().size(), 1)
 
+	func test_when_stub_passed_singleton_it_generates_error():
+		gr.test.stub(Input, "is_action_just_pressed").to_return(true)
+		assert_eq(gr.test.get_logger().get_errors().size(), 1)
+
+
 
 class TestIgnoreMethodsWhenDoubling:
 	extends "res://test/gut_test.gd"

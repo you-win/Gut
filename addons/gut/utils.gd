@@ -366,8 +366,8 @@ func are_datatypes_same(got, expected):
 
 
 func get_singleton_by_name(name):
-	var source = str("const singleton = ", name)
+	var source = str("var singleton = ", name)
 	var script = GDScript.new()
 	script.set_source_code(source)
 	script.reload()
-	return script.singleton
+	return script.new().singleton

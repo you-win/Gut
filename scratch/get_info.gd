@@ -73,8 +73,8 @@ func get_methods_by_flag(obj):
 			methods_by_flags[flag] = [name]
 	return methods_by_flags
 
-func print_methods_by_flags(methods_by_flags):
 
+func print_methods_by_flags(methods_by_flags):
 	for flag in methods_by_flags:
 		for i in range(methods_by_flags[flag].size()):
 			print(flag, ":  ", methods_by_flags[flag][i])
@@ -85,6 +85,7 @@ func print_methods_by_flags(methods_by_flags):
 			print("-- ", flag, " (", methods_by_flags[flag].size(), ") --")
 			total += methods_by_flags[flag].size()
 	print("Total:  ", total)
+
 
 func subtract_dictionary(sub_this, from_this):
 	var result = {}
@@ -97,6 +98,7 @@ func subtract_dictionary(sub_this, from_this):
 				if(index == -1):
 					result[key].append(value)
 	return result
+
 
 func print_method_info(obj):
 	var methods = obj.get_method_list()
@@ -116,6 +118,7 @@ func print_method_info(obj):
 				else:
 					print('  ', key, ':  ', methods[i][key])
 
+
 func print_a_bunch_of_methods_by_flags():
 	var e = ExtendsNode2D.new()
 	var n = get_methods_by_flag(e)
@@ -130,6 +133,7 @@ func print_a_bunch_of_methods_by_flags():
 	print_methods_by_flags(subtract_dictionary(o, n))
 	print("strays  ")
 	e.print_stray_nodes()
+
 
 func get_defaults_and_types(method_meta):
 	var text = ""
@@ -169,6 +173,7 @@ func _init_other():
 	print(dm)
 	quit()
 
+
 func does_inherit_from_test(thing):
 	var base_script = thing.get_base_script()
 	var to_return = false
@@ -181,6 +186,7 @@ func does_inherit_from_test(thing):
 		else:
 			to_return = does_inherit_from_test(base_script)
 	return to_return
+
 
 func print_other_info(loaded):
 	print('---------------------------------')
@@ -209,6 +215,7 @@ func print_other_info(loaded):
 			print('  ', 'id           ', thing.get_instance_id())
 			print('  ', 'is test      ', does_inherit_from_test(thing))
 
+
 func print_inner_test_classes(loaded, from=null):
 	print('path = ', loaded.get_path())
 	if(loaded.get_base_script() != null):
@@ -233,6 +240,7 @@ func print_inner_test_classes(loaded, from=null):
 			else:
 				next_from = str(from, '/', key)
 			print_inner_test_classes(thing, next_from)
+
 
 func print_script_methods():
 	var script = load('res://test/unit/test_print.gd')
@@ -266,6 +274,7 @@ func print_all_non_instancable_classes():
 
 	sort_and_print_array(nons)
 
+
 func print_instanced_ClassDB_classes(invert=false):
 	var classes = ClassDB.get_class_list()
 
@@ -281,10 +290,15 @@ func print_instanced_ClassDB_classes(invert=false):
 	for c in classes:
 		# in addition to the bad_ones, anything that starts with "_" blows
 		# up in get_singleton_by_name
-		if(c.substr(0, 1) == "_" or bad_ones.has(c)):
+		if(bad_ones.has(c)):
 			print("skip ", c)
 		else:
-			var is_inst = _utils.is_instance(_utils.get_singleton_by_name(c))
+			# Anything that starts with an underscore appears to exist as
+			# a keyword without the undrescore.
+			if(c.substr(0, 1) == "_"):
+				c = c.substr(1)
+			var inst = _utils.get_singleton_by_name(c)
+			var is_inst = _utils.is_instance(inst)
 			if(is_inst or !is_inst and invert):
 				instanced.append(c)
 
@@ -294,12 +308,16 @@ func print_instanced_ClassDB_classes(invert=false):
 		print("\nInstanced Classes\n------")
 
 	sort_and_print_array(instanced)
+	return instanced
+
+
+
 
 func _init():
-	sort_and_print_array(Array(ClassDB.get_class_list()))
+	#sort_and_print_array(Array(ClassDB.get_class_list()))
 	#print_all_info(Physics2DServer)
 	#print_method_info(Physics2DServer)
-	#class_db_stuff("ARVRServer")
+	class_db_stuff("ARVRServer")
 	#class_db_stuff("Node")
 	#print(ClassDB.get_class_list(), "  ")
 	#print_all_non_instancable_classes()
