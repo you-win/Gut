@@ -33,10 +33,6 @@
 # InputEvents can be sent via the helper methods or a custom made InputEvent
 # can be sent via send_event(...)
 #
-#
-# Finally, all helper methods also return the event they create so this class
-# can also be used as a factory for creating InputEvents easier.  Just do not
-# add any receivers via the constructor or add_receiver.
 # ##############################################################################
 #extends "res://addons/gut/input_factory.gd"
 
@@ -67,6 +63,8 @@ class InputQueueItem:
 
 	signal event_ready
 
+	# TODO should this be done in _physics_process instead or should it be
+	# configurable?
 	func _process(delta):
 		if(frame_delay > 0 and _delay_started):
 			_waited_frames += 1
