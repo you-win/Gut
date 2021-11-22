@@ -110,6 +110,7 @@ class ObjectInfo:
 	var _path = null
 	var _subpaths = []
 	var _utils = load('res://addons/gut/utils.gd').get_instance()
+	var _lgr = _utils.get_logger()
 	var _method_strategy = null
 	var make_partial_double = false
 	var scene_path = null
@@ -264,6 +265,11 @@ class ObjectInfo:
 			var setget_text = ""
 			if(accessors.setter != null and accessors.getter != null):
 				setget_text = str("setget ", accessors.setter, ", ", accessors.getter)
+			else:
+				# never seen this message show up, but it should show up if we
+				# get misbehaving singleton.
+				_lgr.error(str("Could not find setget methods for property:  ",
+					_singleton_name, ".",  prop["name"]))
 
 			text += str(prop_text, " ", setget_text, "\n")
 
